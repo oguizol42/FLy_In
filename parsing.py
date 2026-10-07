@@ -16,6 +16,7 @@ class MapParsing:
         self.hub_list: list[tuple[MapParsing.HubData, MapParsing.HubMeta]] = []
         self.connection_list: list[tuple[tuple[str, str], int]] = []
         self.nb_drones: int = 0
+        super().__init__()
 
     def clean_map(self) -> None:
         """Clean Map Datas"""
