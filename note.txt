@@ -1,0 +1,35 @@
+Voir le fonctionnement de UV, gestionnaire de package python
+(revoir le module 08)
+uv init "nom du projet" -> initialise mon projet, creer le fichier des dependances de mon futur environement virtuel correspondant au projet
+uv add "nom de la bibliotheque" -> ajoute des dependances pour mon projet
+uv remove "nom de la bibliotheque" -> enleve la dependance
+uv venv
+uv run python3 "nom de mon programme" -> ouvre un environement virtuel et execute mon projet
+uv sync -> installe toutes les dependances de toutes les bibliotheques installees avec uv add
+
+exemples:
+uv init -> instal environnement et sa dépendance 
+uv add pygame
+Installé pygame et ses librairies dans l'environnement virtuel
+uv run fly_in.py
+Exécute dans l'environnement virtuel uv
+
+
+.gitignor: -> liste des fichiers qui ne doivent pas etre push
+	
+	
+python3 -m mypy .
+python3 -m flake8
+
+mypy --exclude-gitignore .
+Fait le mypy dans tout sauf avec les fichiers inclus dans gitignore
+
+flake8 --exclude=.venv
+flake8 partout sauf sur .venv
+
+	
+git clone
+
+git add *
+git commit -m "nom du commit"
+git push
