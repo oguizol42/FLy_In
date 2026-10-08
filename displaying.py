@@ -4,7 +4,7 @@ import sys
 
 class Displaying:
     def __init__(self) -> None:
-        self.hub_size: int = 60
+        self.hub_size: int = 50
 
         self.map_start_x: int = 0
         self.map_start_y: int = 0
@@ -17,6 +17,11 @@ class Displaying:
 
         self.map_size_x: int = 0
         self.map_size_y: int = 0
+
+        self.space_hubs_X: int = 100  # space between two hubs on X axis
+        self.space_hubs_Y: int = 100  # space between two hubs on Y axis
+        self.space_board_X: int = 50  # space with board on X axis
+        self.space_board_Y: int = 50  # space with board on Y axis
 
     def display_map_datas(self) -> None:
         """Display Graphical Map from File"""
@@ -41,15 +46,15 @@ class Displaying:
         # Determine coord start and end of the map
         for hub in self.hub_list:
             print(
-                f"coord X: {hub[0].coordX}, coord X: {hub[0].coordY}"
+                f"coord X: {hub[0].coordX}, coord Y: {hub[0].coordY}"
             )  # TEMPO
             if hub[0].coordX < self.map_start_x:
                 self.map_start_x = hub[0].coordX
-            elif hub[0].coordY < self.map_start_y:
+            if hub[0].coordY < self.map_start_y:
                 self.map_start_y = hub[0].coordY
             if hub[0].coordX > self.map_end_x:
                 self.map_end_x = hub[0].coordX
-            elif hub[0].coordY > self.map_end_y:
+            if hub[0].coordY > self.map_end_y:
                 self.map_end_y = hub[0].coordY
         print(f"Map Start: [{self.map_start_x},{self.map_start_y}]")  # TEMPO
         print(f"Map End: [{self.map_end_x},{self.map_end_y}]")  # TEMPO
@@ -68,14 +73,26 @@ class Displaying:
         self.map_size_x = self.map_end_x - self.map_start_x + 1
         self.map_size_y = self.map_end_y - self.map_start_y + 1
 
-        self.map_size_x = self.map_size_x * (self.hub_size + 5)
-        self.map_size_y = self.map_size_y * (self.hub_size + 5)
+        self.map_size_x = (
+            self.map_size_x * (self.hub_size + self.space_hubs_X)
+            - self.space_hubs_X
+            + (self.space_board_X * 2)
+        )
+        self.map_size_y = (
+            self.map_size_y * (self.hub_size + self.space_hubs_Y)
+            - self.space_hubs_Y
+            + (self.space_board_Y * 2)
+        )
         print(
             f"Map Size X: {self.map_size_x}, Map Size Y: {self.map_size_y}"
         )  # TEMPO
 
     def displaying_map(self) -> None:
         """Display Map and maps elements"""
+        posX: int = 0
+        posY: int = 0
+        color: str = "yellow"
+
         pygame.init()
 
         # Creat window
@@ -93,40 +110,66 @@ class Displaying:
                 ):  # Si on clique sur la croix rouge
                     in_progress = False
 
-            # Fill window with one color TEMPO
-            window.fill((30, 30, 30))  # Un gris foncé sympa
-            a = 31  # TEMPO
-            pygame.draw.circle(
-                window, pygame.Color("crimson"), (a, 31), self.hub_size / 2
-            )  # TEMPO
-            a = a + self.hub_size + 5
-            pygame.draw.circle(
-                window, pygame.Color("crimson"), (a, 31), self.hub_size / 2
-            )  # TEMPO
-            a = a + self.hub_size + 5
-            pygame.draw.circle(
-                window, pygame.Color("crimson"), (a, 31), self.hub_size / 2
-            )  # TEMPO
-            a = a + self.hub_size + 5
-            pygame.draw.circle(
-                window, pygame.Color("crimson"), (a, 31), self.hub_size / 2
-            )  # TEMPO
-            a = a + self.hub_size + 5
-            pygame.draw.circle(
-                window, pygame.Color("crimson"), (a, 31), self.hub_size / 2
-            )  # TEMPO
-            a = a + self.hub_size + 5
-            pygame.draw.circle(
-                window, pygame.Color("crimson"), (a, 31), self.hub_size / 2
-            )  # TEMPO
-            a = a + self.hub_size + 5
-            pygame.draw.circle(
-                window, pygame.Color("crimson"), (a, 31), self.hub_size / 2
-            )  # TEMPO
-            a = a + self.hub_size + 5
-            pygame.draw.circle(
-                window, pygame.Color("crimson"), (a, 31), self.hub_size / 2
-            )  # TEMPO
+            # Fill window
+            window.fill((99, 99, 99))
+
+            # hub setup on screen
+            for hub in self.hub_list:
+
+                # Calcul Hub Coord
+                posX = hub[0].coordX + self.map_offsetX
+                posX = posX * (self.hub_size + self.space_hubs_X)
+                posX = posX + self.hub_size / 2  # pile au bord
+                posX += self.space_board_X
+
+                posY = hub[0].coordY + self.map_offsetY
+                posY = posY * (self.hub_size + self.space_hubs_Y)
+                posY = posY + self.hub_size / 2  # pile au bord
+                posY += self.space_board_Y
+
+                # Display Hub
+                color = hub[1].color
+
+                pygame.draw.circle(
+                    window,
+                    pygame.Color(color),
+                    (posX, posY),
+                    self.hub_size / 2,
+                )
+
+                pygame.draw.circle(
+                    window,
+                    pygame.Color("red"),
+                    (posX, posY),
+                    self.hub_size / 2,
+                    9,
+                )
+
+                pygame.draw.circle(
+                    window,
+                    pygame.Color("white"),
+                    (posX, posY),
+                    self.hub_size / 2,
+                    6,
+                )
+
+                pygame.draw.circle(
+                    window,
+                    pygame.Color("blue"),
+                    (posX, posY),
+                    self.hub_size / 2,
+                    3,
+                )
+
+                # Hub Name
+                police = pygame.font.Font(None, 20)
+                text = police.render(hub[0].name, True, pygame.Color("black"))
+
+                text_zone = text.get_rect()
+
+                text_zone.center = (posX, posY - (self.hub_size / 2) - 5)
+
+                window.blit(text, text_zone)
 
             pygame.display.flip()
 
