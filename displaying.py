@@ -31,14 +31,17 @@ class Displaying:
             raise ValueError("Map is not Cleaned")
         if self.hub_list is None or self.hub_list == []:
             raise ValueError("Zones are not listed")
-        if self.connection_list is None or self.connection_list == []:
+        if (
+            self.connection_name_list is None
+            or self.connection_name_list == []
+        ):
             raise ValueError("Connections are not listed")
         if self.nb_drones is None or self.nb_drones < 1:
             raise ValueError("Quantite of drones not determined")
         print()
         print(f"NOMBRE DE DRONES:\n{self.nb_drones}")
         print(f"\nZONES LIST:\n{self.hub_list}")
-        print(f"\nCONNECTIONS LIST:\n{self.connection_list}")
+        print(f"\nCONNECTIONS LIST:\n{self.connection_name_list}")
 
     def calcul_map_size(self) -> None:
         """Calcul size of the Map"""

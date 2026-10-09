@@ -11,10 +11,13 @@ class MapParsing:
         self.name_used: list[str] = []
         self.coord_list: list[tuple[int, int]] = []
         self.connection_check_list: list[tuple[str, str]] = []
+        self.connection_name_list: list[tuple[tuple[str, str], int]] = []
 
         # Definitive Datas
         self.hub_list: list[tuple[MapParsing.HubData, MapParsing.HubMeta]] = []
-        self.connection_list: list[tuple[tuple[str, str], int]] = []
+        self.connection_list: list[
+            tuple[tuple[MapParsing.HubData, MapParsing.HubData], int]
+        ] = []
         self.nb_drones: int = 0
         super().__init__()
 
@@ -177,7 +180,7 @@ class MapParsing:
             raise ValueError(f"{tuple_tempo} is a doublon in Connection Datas")
         self.connection_check_list.append(tuple_tempo)
         self.connection_check_list.append((tuple_tempo[1], tuple_tempo[0]))
-        self.connection_list.append((tuple_tempo, qty_connections))
+        self.connection_name_list.append((tuple_tempo, qty_connections))
 
     def check_connections_list(self) -> None:
         """Check if Each Connection Exist"""
@@ -197,6 +200,13 @@ class MapParsing:
                     f"In connection {connection}: "
                     f"{connection[1]} does not exist"
                 )
+
+    def create_connection_list(self) -> None:
+        """Create list of connection by hub"""
+        # Parcours self.connection_list
+        #   trouve chaque hub de la connection a l'aide de self.hub_list
+        #   rajoute chaque hub et qty correspondant dans self.connection_list
+        pass
 
     def check_hub_meta(self, string: str) -> "MapParsing.HubMeta":
         """Check if hub Meta is Conform"""
@@ -320,3 +330,14 @@ class MapParsing:
                 self.check_hub(self.map_clean[i])
 
         self.check_connections_list()
+        self.create_connection_list()
+
+
+# self.hub_list: list[tuple[MapParsing.HubData, MapParsing.HubMeta]] = []
+#
+# Transformer:  self.connection_list: list[tuple[tuple[str, str], int]] = []
+# En:           self.connection_list: list[tuple[tuple[MapParsing.HubData, MapParsing.HubData], int]] = []
+
+# Voir dans fonction check_connection_datas
+
+# Modifier affichage des donnees dans le terminal pour etre conforme au sujet
