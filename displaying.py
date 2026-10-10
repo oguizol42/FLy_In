@@ -42,6 +42,7 @@ class Displaying:
         print(f"NOMBRE DE DRONES:\n{self.nb_drones}")
         print(f"\nZONES LIST:\n{self.hub_list}")
         print(f"\nCONNECTIONS LIST:\n{self.connection_name_list}")
+        print(f"\nCONNECTIONS LIST PAR HUB:\n{self.connection_list}")
 
     def calcul_map_size(self) -> None:
         """Calcul size of the Map"""
@@ -182,6 +183,26 @@ class Displaying:
         # quit display
         pygame.quit()
         sys.exit()
+
+    def displaying_simulation(self) -> None:
+        """Display simulation step by step"""
+        # • The simulation must output the step-by-step movement of drones from the start to
+        #   the end zone.
+        # • Each simulation turn is represented by a line.
+        # • A line must list all the drone movements that occur during that turn, space-
+        # separated. Each movement must follow the format: D<ID>-<zone>, or D<ID>-<connection>
+        # in case of drones still in flight toward restricted zones.
+        #     ◦ D<ID> refers to the unique drone identifier (e.g., D1, D2).
+        #     ◦ <zone> is the name of the destination zone.
+        #     ◦ <connection> is the name of the connection toward a restricted zone.
+        # • Drones that do not move in a given turn are omitted from that line.
+        # • Drones that reach the end zone are considered delivered and are no longer tracked.
+        # • The simulation ends when all drones have reached the end zone.
+        # • Example:
+        #     D1-roof1 D2-corridorA
+        #     D1-roof2 D2-tunnelB
+        #     D1-goal D2-goal
+        pass
 
 
 # Calcul de la taille de la fenetre de la map

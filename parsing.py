@@ -66,6 +66,8 @@ class MapParsing:
         name: str = Field(min_length=1)
         coordX: int
         coordY: int
+        type: str
+        nb_drones: int = Field(default=0, ge=0)
 
         @model_validator(mode="after")
         def hub_datas_validation(self) -> "MapParsing.HubData":
@@ -201,9 +203,28 @@ class MapParsing:
                     f"{connection[1]} does not exist"
                 )
 
+    def find_hub(self, name: str) -> Optional["MapParsing.HubData"]:
+        """Return hub with name"""
+        for hub in self.hub_list:
+            if hub[0].name == name:
+                return hub
+
     def create_connection_list(self) -> None:
         """Create list of connection by hub"""
-        # Parcours self.connection_list
+        hub1: MapParsing.HubData
+        hub2: MapParsing.HubData
+
+        if self.connection_name_list == [] or self.connection_name_list is None:
+            raise ValueError("There is not connection defined")
+
+        for connection in self.connection_name_list:
+            hub1 = self.find_hub(connection[0][0])
+            hub2 = self.find_hub(connection[0][1])
+            if hub1 is None or hub2 is None:
+                raise ValueError("Connections list is not conform")
+            self.connection_list.append([[hub1, hub2], connection[1]])
+        
+        # Parcours self.connection_name_list
         #   trouve chaque hub de la connection a l'aide de self.hub_list
         #   rajoute chaque hub et qty correspondant dans self.connection_list
         pass
@@ -260,7 +281,7 @@ class MapParsing:
 
         return metas
 
-    def check_hub_datas(self, string: str) -> "MapParsing.HubData":
+    def check_hub_datas(self, string: str, type: str) -> "MapParsing.HubData":
         """Check if hub Datas are Conform"""
         datas_str: str = self.recup_datas_only(string)
         datas: MapParsing.HubData
@@ -276,6 +297,7 @@ class MapParsing:
             name=datas_separate[0],
             coordX=int(datas_separate[1]),
             coordY=int(datas_separate[2]),
+            type=type,
         )
         if datas.name in self.name_used:
             raise ValueError(f"This name: {datas.name} is already used")
@@ -290,10 +312,12 @@ class MapParsing:
 
         return datas
 
-    def check_hub(self, line: str) -> None:
+    def check_hub(self, line: str, type: str) -> None:
         """Check hub"""
-        datas: MapParsing.HubData = self.check_hub_datas(line)
+        datas: MapParsing.HubData = self.check_hub_datas(line, type)
         metas: MapParsing.HubMeta = self.check_hub_meta(line)
+        if type == "start_hub":
+            datas.nb_drones = self.nb_drones
         self.hub_list.append((datas, metas))
 
     def map_parsing(self) -> None:
@@ -327,7 +351,7 @@ class MapParsing:
             elif type == "connection":
                 self.check_connection_datas(self.map_clean[i])
             else:
-                self.check_hub(self.map_clean[i])
+                self.check_hub(self.map_clean[i], type)
 
         self.check_connections_list()
         self.create_connection_list()
