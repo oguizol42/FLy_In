@@ -75,6 +75,30 @@ class MapParsing:
                 raise ValueError("The name must not countain: '-', '_' or ' '")
             return self
 
+    class Drone(BaseModel):
+        num: int
+        hub_pos: "MapParsing.HubData | MapParsing.Connection"
+
+    class Connection(BaseModel):
+        num: int
+        hub1: "MapParsing.HubData"
+        hub2: "MapParsing.HubData"
+        nb_drones_in: int = Field(default=0, ge=0)
+        drones_in_connect: list["MapParsing.Drone"] = Field(default_factory=list)
+        max_drones_allow: int = Field(default=1, ge=0)
+
+        @model_validator(mode="after")
+        def Connection(self) -> "MapParsing.Connection":
+            if self.nb_drones_in > self.max_drones_allow:
+                raise ValueError(
+                    f"You try to put {self.nb_drones_in} drones, "
+                    f"but you can't be have more than {self.max_drones_allow}"
+                    "in this connection"
+                )
+            return self
+
+        # INSTANCIER LES CONNECTIONS  ET LES DRONES + CREER LES FONCTIONS drones_manager
+
     def check_type(self, line: str) -> str:
         """Check and Return type or a raise"""
         if line is None:
@@ -227,7 +251,6 @@ class MapParsing:
         # Parcours self.connection_name_list
         #   trouve chaque hub de la connection a l'aide de self.hub_list
         #   rajoute chaque hub et qty correspondant dans self.connection_list
-        pass
 
     def check_hub_meta(self, string: str) -> "MapParsing.HubMeta":
         """Check if hub Meta is Conform"""
