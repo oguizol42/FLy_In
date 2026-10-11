@@ -40,9 +40,10 @@ class Displaying:
             raise ValueError("Quantite of drones not determined")
         print()
         print(f"NOMBRE DE DRONES:\n{self.nb_drones}")
-        print(f"\nZONES LIST:\n{self.hub_list}")
+        print(f"\nHUBS LIST:\n{self.hub_list}")
         print(f"\nCONNECTIONS LIST:\n{self.connection_name_list}")
         print(f"\nCONNECTIONS LIST PAR HUB:\n{self.connection_list}")
+        print(f"\nDRONES LIST:\n{self.drone_list}")
 
     def calcul_map_size(self) -> None:
         """Calcul size of the Map"""

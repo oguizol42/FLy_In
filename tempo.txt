@@ -1,0 +1,14 @@
+class Drone(BaseModel):
+        id: int
+        hub_pos: "MapParsing.HubData | MapParsing.Connection"
+
+    class Connection(BaseModel):
+        id: int
+        hub1: "MapParsing.HubData"
+        hub2: "MapParsing.HubData"
+        nb_drones_in: int = Field(default=0, ge=0)
+        drones_in_connect: list["MapParsing.Drone"] = Field(default_factory=list)
+        max_drones_allow: int = Field(default=1, ge=0)
+        
+        
+        self.nb_drones: int = 0

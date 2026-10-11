@@ -76,18 +76,25 @@ class Manage_flies:
 
 
 def main() -> None:
-    try:
-        # map: Drone_Map = Drone_Map("maps/easy/01_linear_path.txt")
-        map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
+    # try:
+    #     # map: Drone_Map = Drone_Map("maps/easy/01_linear_path.txt")
+    #     map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
 
-        map.loading_map()
-        map.map_parsing()
-        map.display_map_datas()
-        map.calcul_map_size()
-        map.displaying_map()
+    #     map.loading_map()
+    #     map.map_parsing()
+    #     map.display_map_datas()
+    #     map.calcul_map_size()
+    #     map.displaying_map()
 
-    except ValueError as e:
-        print(e)
+    # except ValueError as e:
+    #     print(e)
+    map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
+
+    map.loading_map()
+    map.map_parsing()
+    map.display_map_datas()
+    map.calcul_map_size()
+    map.displaying_map()
 
 
 if __name__ == "__main__":

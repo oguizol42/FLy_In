@@ -6,6 +6,7 @@ from enum import Enum
 class MapParsing:
     def __init__(self) -> None:
         # For check
+        self.nb_connections: int = 0
         self.map_clean: list[str] = []
         self.types_used: list[str] = []
         self.name_used: list[str] = []
@@ -15,9 +16,8 @@ class MapParsing:
 
         # Definitive Datas
         self.hub_list: list[tuple[MapParsing.HubData, MapParsing.HubMeta]] = []
-        self.connection_list: list[
-            tuple[tuple[MapParsing.HubData, MapParsing.HubData], int]
-        ] = []
+        self.connection_list: list[MapParsing.Connection] = []
+        self.drone_list: list[MapParsing.Drone] = []
         self.nb_drones: int = 0
         super().__init__()
 
@@ -55,7 +55,7 @@ class MapParsing:
         max_drones: int = Field(default=1, ge=0)
 
         @model_validator(mode="after")
-        def hub_meta_validation(self) -> "MapParsing.HubData":
+        def hub_meta_validation(self) -> "MapParsing.HubMeta":
             if self.zone_type not in [e.value for e in MapParsing.HubMetaZone]:
                 raise ValueError(
                     f"{self.zone_type} " "is not a conform type of zone"
@@ -67,6 +67,7 @@ class MapParsing:
         coordX: int
         coordY: int
         type: str
+        drones_in_hub: list["MapParsing.Drone"] = Field(default_factory=list)
         nb_drones: int = Field(default=0, ge=0)
 
         @model_validator(mode="after")
@@ -76,11 +77,11 @@ class MapParsing:
             return self
 
     class Drone(BaseModel):
-        num: int
+        id: int
         hub_pos: "MapParsing.HubData | MapParsing.Connection"
 
     class Connection(BaseModel):
-        num: int
+        id: int
         hub1: "MapParsing.HubData"
         hub2: "MapParsing.HubData"
         nb_drones_in: int = Field(default=0, ge=0)
@@ -91,8 +92,8 @@ class MapParsing:
         def Connection(self) -> "MapParsing.Connection":
             if self.nb_drones_in > self.max_drones_allow:
                 raise ValueError(
-                    f"You try to put {self.nb_drones_in} drones, "
-                    f"but you can't be have more than {self.max_drones_allow}"
+                    f"{self.nb_drones_in} drones is too high, "
+                    f"you can have more than {self.max_drones_allow}"
                     "in this connection"
                 )
             return self
@@ -231,26 +232,49 @@ class MapParsing:
         """Return hub with name"""
         for hub in self.hub_list:
             if hub[0].name == name:
-                return hub
+                return hub[0]
+
+    def find_hub_by_type(self, type: str) -> Optional["MapParsing.HubData"]:
+        """Return hub with name"""
+        for hub in self.hub_list:
+            if hub[0].type == type:
+                return hub[0]
 
     def create_connection_list(self) -> None:
         """Create list of connection by hub"""
-        hub1: MapParsing.HubData
-        hub2: MapParsing.HubData
+        huba: MapParsing.HubData
+        hubb: MapParsing.HubData
+        connect: MapParsing.Connection
 
         if self.connection_name_list == [] or self.connection_name_list is None:
             raise ValueError("There is not connection defined")
 
         for connection in self.connection_name_list:
-            hub1 = self.find_hub(connection[0][0])
-            hub2 = self.find_hub(connection[0][1])
-            if hub1 is None or hub2 is None:
+            huba = self.find_hub(connection[0][0])
+            hubb = self.find_hub(connection[0][1])
+            if huba is None or hubb is None:
                 raise ValueError("Connections list is not conform")
-            self.connection_list.append([[hub1, hub2], connection[1]])
-        
-        # Parcours self.connection_name_list
-        #   trouve chaque hub de la connection a l'aide de self.hub_list
-        #   rajoute chaque hub et qty correspondant dans self.connection_list
+            self.nb_connections += 1
+            connect = self.Connection(
+                id=self.nb_connections,
+                hub1=huba,
+                hub2=hubb,
+                max_drones_allow=connection[1],
+            )
+            self.connection_list.append(connect)
+
+    def create_drone_list(self) -> None:
+        """Create list of drones"""
+        hub_start: MapParsing.HubData = self.find_hub_by_type("start_hub")
+        new_drone: MapParsing.Drone
+
+        for n in range(self.nb_drones):
+            new_drone = self.Drone(
+                            id = n + 1,
+                            hub_pos = hub_start,
+                        )
+            self.drone_list.append(new_drone)
+            hub_start.drones_in_hub.append(new_drone)
 
     def check_hub_meta(self, string: str) -> "MapParsing.HubMeta":
         """Check if hub Meta is Conform"""
@@ -336,7 +360,7 @@ class MapParsing:
         return datas
 
     def check_hub(self, line: str, type: str) -> None:
-        """Check hub"""
+        """Check hub and create list of hubs"""
         datas: MapParsing.HubData = self.check_hub_datas(line, type)
         metas: MapParsing.HubMeta = self.check_hub_meta(line)
         if type == "start_hub":
@@ -378,13 +402,6 @@ class MapParsing:
 
         self.check_connections_list()
         self.create_connection_list()
-
-
-# self.hub_list: list[tuple[MapParsing.HubData, MapParsing.HubMeta]] = []
-#
-# Transformer:  self.connection_list: list[tuple[tuple[str, str], int]] = []
-# En:           self.connection_list: list[tuple[tuple[MapParsing.HubData, MapParsing.HubData], int]] = []
-
-# Voir dans fonction check_connection_datas
+        self.create_drone_list()
 
 # Modifier affichage des donnees dans le terminal pour etre conforme au sujet
