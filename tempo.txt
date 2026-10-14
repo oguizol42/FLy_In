@@ -30,16 +30,24 @@ class Drone(BaseModel):
     self.nb_drones: int = 0
     
     
-    def find_hub(self, name: str) -> Optional["MapParsing.HubData"]:
+def find_hub(self, name: str) -> Optional[tuple["MapParsing.HubData","MapParsing.HubMeta"]]:
         """Return hub with name"""
         for hub in self.hub_list:
             if hub[0].name == name:
-                return hub[0]
+                return hub[0], hub[1]
 
-    def find_hub_by_type(self, type: str) -> Optional["MapParsing.HubData"]:
+def find_hub_by_type(self, type: str) -> Optional[tuple["MapParsing.HubData","MapParsing.HubMeta"]]:
         """Return hub with name"""
         for hub in self.hub_list:
             if hub[0].type == type:
-                return hub[0]
+                return hub[0], hub[1]
                
-               MODIFIER CES DEUX DERNIERES FONCTIONS POUR QU'ELLES DELIVRENT EGALMENT LES HubMeta correspondants
+- Modifier le parsing pour prendre en compte un eventuel nombre de drones max en start_hub et end_hub
+
+- Gerer affichage connections pour verif
+
+- Creer affichage demander par le sujet
+
+- Makefile
+
+- Creer algortyhme

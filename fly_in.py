@@ -88,14 +88,17 @@ def main() -> None:
 
     # except ValueError as e:
     #     print(e)
-    map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
+    try:
+        map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
 
-    map.loading_map()
-    map.map_parsing()
-    map.display_map_datas()
-    map.display_main_datas()
-    map.calcul_map_size()
-    map.displaying_map()
+        map.loading_map()
+        map.map_parsing()
+        map.display_map_datas()
+        map.display_main_datas()
+        map.calcul_map_size()
+        map.displaying_map()
+    except ValueError as e:
+        print(e)
 
 
 if __name__ == "__main__":

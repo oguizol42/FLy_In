@@ -48,6 +48,9 @@ class Displaying:
 
     def display_main_datas(self) -> None:
         """Display Datas Informations of Map"""
+        hub_datas: parsing.MapParsing.HubData
+        hub_metas: parsing.MapParsing.HubMeta
+
         if self.map_text is None:
             raise ValueError("No Map Loaded")
         if self.map_clean is None or self.map_clean == []:
@@ -63,9 +66,37 @@ class Displaying:
             raise ValueError("Quantite of drones not determined")
         print()
         print(f"NOMBRE DE DRONES: {self.nb_drones}")
-        print(f"\nSTART HUB: \n")
-        print(f"\nEND HUB: \n")
-        print(f"\nHUBS LIST:\n")
+
+        hub_datas, hub_metas = self.find_hub_by_type("start_hub")
+        print(
+            f"\nSTART HUB: \n"
+            f"  Name: {hub_datas.name}\n"
+            f"  Coord: {hub_datas.coordX} {hub_datas.coordY}\n"
+            f"  Color: {hub_metas.color}\n"
+            f"  Max Drones: {hub_metas.max_drones}"
+        )
+
+        hub_datas, hub_metas = self.find_hub_by_type("end_hub")
+        print(
+            f"\nEND HUB: \n"
+            f"  Name: {hub_datas.name}\n"
+            f"  Coord: {hub_datas.coordX} {hub_datas.coordY}\n"
+            f"  Color: {hub_metas.color}\n"
+            f"  Max Drones: {hub_metas.max_drones}"
+        )
+
+
+        print(f"\nHUBS LIST:")
+        for hub_datas, hub_metas in self.hub_list:
+            if hub_datas.type == "start_hub" or hub_datas.type == "end_hub":
+                continue
+            print(
+                f"{hub_datas.name} {hub_datas.coordX} {hub_datas.coordY}, "
+                f"color: {hub_metas.color}, "
+                f"zone type: {hub_metas.zone_type}, "
+                f"max drones: {hub_metas.max_drones}"
+            )
+
         print(f"\nCONNECTIONS LIST:\n")
 
 
