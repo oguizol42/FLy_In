@@ -33,7 +33,9 @@ import drones_manager
 #             print(e)
 
 
-class Drone_Map(parsing.MapParsing, displaying.Displaying):
+class Drone_Map(
+    parsing.MapParsing, drones_manager.DronesManager, displaying.Displaying
+):
     def __init__(self, file_name: str) -> None:
         self.file_name = file_name
         self.map_text: str = None
@@ -76,24 +78,13 @@ class Manage_flies:
 
 
 def main() -> None:
-    # try:
-    #     # map: Drone_Map = Drone_Map("maps/easy/01_linear_path.txt")
-    #     map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
-
-    #     map.loading_map()
-    #     map.map_parsing()
-    #     map.display_map_datas()
-    #     map.calcul_map_size()
-    #     map.displaying_map()
-
-    # except ValueError as e:
-    #     print(e)
     try:
+        # map: Drone_Map = Drone_Map("maps/easy/01_linear_path.txt")
         map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
 
         map.loading_map()
         map.map_parsing()
-        map.display_map_datas()
+        # map.display_map_datas()
         map.display_main_datas()
         map.calcul_map_size()
         map.displaying_map()

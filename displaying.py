@@ -50,6 +50,7 @@ class Displaying:
         """Display Datas Informations of Map"""
         hub_datas: parsing.MapParsing.HubData
         hub_metas: parsing.MapParsing.HubMeta
+        connection: parsing.MapParsing.Connection
 
         if self.map_text is None:
             raise ValueError("No Map Loaded")
@@ -85,8 +86,7 @@ class Displaying:
             f"  Max Drones: {hub_metas.max_drones}"
         )
 
-
-        print(f"\nHUBS LIST:")
+        print("\nHUBS LIST:")
         for hub_datas, hub_metas in self.hub_list:
             if hub_datas.type == "start_hub" or hub_datas.type == "end_hub":
                 continue
@@ -97,18 +97,25 @@ class Displaying:
                 f"max drones: {hub_metas.max_drones}"
             )
 
-        print(f"\nCONNECTIONS LIST:\n")
+        print("\nCONNECTIONS LIST:\n")
+        for connection in self.connection_list:
+            print(
+                f"ID: {connection.id}, "
+                f"Connection: {connection.hub1.name}-{connection.hub2.name}, "
+                f"Qty Drone In: {connection.nb_drones_in}, "
+                f"Max Drones Allow: {connection.max_drones_allow}"
+            )
 
-
+        print("\n\n\n")
 
     def calcul_map_size(self) -> None:
         """Calcul size of the Map"""
 
         # Determine coord start and end of the map
         for hub in self.hub_list:
-            print(
-                f"coord X: {hub[0].coordX}, coord Y: {hub[0].coordY}"
-            )  # TEMPO
+            # print(
+            #     f"coord X: {hub[0].coordX}, coord Y: {hub[0].coordY}"
+            # )  # TEMPO
             if hub[0].coordX < self.map_start_x:
                 self.map_start_x = hub[0].coordX
             if hub[0].coordY < self.map_start_y:
@@ -117,18 +124,18 @@ class Displaying:
                 self.map_end_x = hub[0].coordX
             if hub[0].coordY > self.map_end_y:
                 self.map_end_y = hub[0].coordY
-        print(f"Map Start: [{self.map_start_x},{self.map_start_y}]")  # TEMPO
-        print(f"Map End: [{self.map_end_x},{self.map_end_y}]")  # TEMPO
+        # print(f"Map Start: [{self.map_start_x},{self.map_start_y}]")  # TEMPO
+        # print(f"Map End: [{self.map_end_x},{self.map_end_y}]")  # TEMPO
 
         # Calcul offset with coord [0,0] if negative coord
         if self.map_start_x < 0:
             self.map_offsetX = self.map_start_x * -1
         if self.map_start_y < 0:
             self.map_offsetY = self.map_start_y * -1
-        print(
-            f"Map Offset X: {self.map_offsetX}, "
-            f"Map Offset Y: {self.map_offsetY}"
-        )  # TEMPO
+        # print(
+        #     f"Map Offset X: {self.map_offsetX}, "
+        #     f"Map Offset Y: {self.map_offsetY}"
+        # )  # TEMPO
 
         # Calcul size of the map:
         self.map_size_x = self.map_end_x - self.map_start_x + 1
@@ -144,11 +151,13 @@ class Displaying:
             - self.space_hubs_Y
             + (self.space_board_Y * 2)
         )
-        print(
-            f"Map Size X: {self.map_size_x}, Map Size Y: {self.map_size_y}"
-        )  # TEMPO
+        # print(
+        #     f"Map Size X: {self.map_size_x}, Map Size Y: {self.map_size_y}"
+        # )  # TEMPO
 
-    def calcul_real_pos(self, hub: parsing.MapParsing.HubData) -> tuple[int, int]:
+    def calcul_real_pos(
+        self, hub: parsing.MapParsing.HubData
+    ) -> tuple[int, int]:
         """Calcul coordonnees in graphical map"""
         # Calcul Hub Coord
         posX = hub.coordX + self.map_offsetX
@@ -200,8 +209,8 @@ class Displaying:
                     pygame.Color("brown"),
                     (posX, posY),
                     (posX2, posY2),
-                    3
-                    )
+                    3,
+                )
 
             # hub setup on screen
             for hub in self.hub_list:

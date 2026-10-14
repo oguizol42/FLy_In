@@ -1,6 +1,7 @@
 class Drone(BaseModel):
 	id: int
 	hub_pos: "MapParsing.HubData | MapParsing.Connection"
+	positioning_log: list [int, "MapParsing.HubData | MapParsing.Connection"]
 
     class Connection(BaseModel):
         id: int
@@ -42,10 +43,6 @@ def find_hub_by_type(self, type: str) -> Optional[tuple["MapParsing.HubData","Ma
             if hub[0].type == type:
                 return hub[0], hub[1]
                
-- Modifier le parsing pour prendre en compte un eventuel nombre de drones max en start_hub et end_hub
-
-- Gerer affichage connections pour verif
-
 - Creer affichage demander par le sujet
 
 - Makefile

@@ -79,13 +79,16 @@ class MapParsing:
     class Drone(BaseModel):
         id: int
         hub_pos: "MapParsing.HubData | MapParsing.Connection"
+        positioning_log: list["MapParsing.HubData | MapParsing.Connection"]
 
     class Connection(BaseModel):
         id: int
         hub1: "MapParsing.HubData"
         hub2: "MapParsing.HubData"
         nb_drones_in: int = Field(default=0, ge=0)
-        drones_in_connect: list["MapParsing.Drone"] = Field(default_factory=list)
+        drones_in_connect: list["MapParsing.Drone"] = Field(
+            default_factory=list
+        )
         max_drones_allow: int = Field(default=1, ge=0)
 
         @model_validator(mode="after")
@@ -228,13 +231,17 @@ class MapParsing:
                     f"{connection[1]} does not exist"
                 )
 
-    def find_hub(self, name: str) -> Optional[tuple["MapParsing.HubData","MapParsing.HubMeta"]]:
+    def find_hub(
+        self, name: str
+    ) -> Optional[tuple["MapParsing.HubData", "MapParsing.HubMeta"]]:
         """Return hub with name"""
         for hub in self.hub_list:
             if hub[0].name == name:
                 return hub[0], hub[1]
 
-    def find_hub_by_type(self, type: str) -> Optional[tuple["MapParsing.HubData","MapParsing.HubMeta"]]:
+    def find_hub_by_type(
+        self, type: str
+    ) -> Optional[tuple["MapParsing.HubData", "MapParsing.HubMeta"]]:
         """Return hub with name"""
         for hub in self.hub_list:
             if hub[0].type == type:
@@ -246,7 +253,10 @@ class MapParsing:
         hubb: MapParsing.HubData
         connect: MapParsing.Connection
 
-        if self.connection_name_list == [] or self.connection_name_list is None:
+        if (
+            self.connection_name_list == []
+            or self.connection_name_list is None
+        ):
             raise ValueError("There is not connection defined")
 
         for connection in self.connection_name_list:
@@ -271,9 +281,8 @@ class MapParsing:
         hub_start, _ = self.find_hub_by_type("start_hub")
         for n in range(self.nb_drones):
             new_drone = self.Drone(
-                            id = n + 1,
-                            hub_pos = hub_start,
-                        )
+                id=n + 1, hub_pos=hub_start, positioning_log=[hub_start]
+            )
             self.drone_list.append(new_drone)
             hub_start.drones_in_hub.append(new_drone)
 
@@ -404,5 +413,6 @@ class MapParsing:
         self.check_connections_list()
         self.create_connection_list()
         self.create_drone_list()
+
 
 # Modifier affichage des donnees dans le terminal pour etre conforme au sujet
