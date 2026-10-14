@@ -228,17 +228,17 @@ class MapParsing:
                     f"{connection[1]} does not exist"
                 )
 
-    def find_hub(self, name: str) -> Optional["MapParsing.HubData"]:
+    def find_hub(self, name: str) -> Optional[tuple["MapParsing.HubData","MapParsing.HubMeta"]]:
         """Return hub with name"""
         for hub in self.hub_list:
             if hub[0].name == name:
-                return hub[0]
+                return hub[0], hub[1]
 
-    def find_hub_by_type(self, type: str) -> Optional["MapParsing.HubData"]:
+    def find_hub_by_type(self, type: str) -> Optional[tuple["MapParsing.HubData","MapParsing.HubMeta"]]:
         """Return hub with name"""
         for hub in self.hub_list:
             if hub[0].type == type:
-                return hub[0]
+                return hub[0], hub[1]
 
     def create_connection_list(self) -> None:
         """Create list of connection by hub"""
@@ -250,8 +250,8 @@ class MapParsing:
             raise ValueError("There is not connection defined")
 
         for connection in self.connection_name_list:
-            huba = self.find_hub(connection[0][0])
-            hubb = self.find_hub(connection[0][1])
+            huba, _ = self.find_hub(connection[0][0])
+            hubb, _ = self.find_hub(connection[0][1])
             if huba is None or hubb is None:
                 raise ValueError("Connections list is not conform")
             self.nb_connections += 1
@@ -265,9 +265,10 @@ class MapParsing:
 
     def create_drone_list(self) -> None:
         """Create list of drones"""
-        hub_start: MapParsing.HubData = self.find_hub_by_type("start_hub")
+        hub_start: MapParsing.HubData
         new_drone: MapParsing.Drone
 
+        hub_start, _ = self.find_hub_by_type("start_hub")
         for n in range(self.nb_drones):
             new_drone = self.Drone(
                             id = n + 1,

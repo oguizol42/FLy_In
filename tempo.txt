@@ -1,6 +1,6 @@
 class Drone(BaseModel):
-        id: int
-        hub_pos: "MapParsing.HubData | MapParsing.Connection"
+	id: int
+	hub_pos: "MapParsing.HubData | MapParsing.Connection"
 
     class Connection(BaseModel):
         id: int
@@ -10,5 +10,36 @@ class Drone(BaseModel):
         drones_in_connect: list["MapParsing.Drone"] = Field(default_factory=list)
         max_drones_allow: int = Field(default=1, ge=0)
         
-        
-        self.nb_drones: int = 0
+    class HubData(BaseModel):
+        name: str = Field(min_length=1)
+        coordX: int
+        coordY: int
+        type: str
+        drones_in_hub: list["MapParsing.Drone"] = Field(default_factory=list)
+        nb_drones: int = Field(default=0, ge=0)
+
+        @model_validator(mode="after")
+        def hub_datas_validation(self) -> "MapParsing.HubData":
+            if "-" in self.name or " " in self.name:
+                raise ValueError("The name must not countain: '-', '_' or ' '")
+            return self
+            
+    self.connection_list: list[MapParsing.Connection] = []
+    self.hub_list: list[tuple[MapParsing.HubData, MapParsing.HubMeta]] = []
+    
+    self.nb_drones: int = 0
+    
+    
+    def find_hub(self, name: str) -> Optional["MapParsing.HubData"]:
+        """Return hub with name"""
+        for hub in self.hub_list:
+            if hub[0].name == name:
+                return hub[0]
+
+    def find_hub_by_type(self, type: str) -> Optional["MapParsing.HubData"]:
+        """Return hub with name"""
+        for hub in self.hub_list:
+            if hub[0].type == type:
+                return hub[0]
+               
+               MODIFIER CES DEUX DERNIERES FONCTIONS POUR QU'ELLES DELIVRENT EGALMENT LES HubMeta correspondants

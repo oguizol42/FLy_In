@@ -1,5 +1,6 @@
 import pygame
 import sys
+import parsing
 
 
 class Displaying:
@@ -24,7 +25,7 @@ class Displaying:
         self.space_board_Y: int = 50  # space with board on Y axis
 
     def display_map_datas(self) -> None:
-        """Display Graphical Map from File"""
+        """Display All Map Informations"""
         if self.map_text is None:
             raise ValueError("No Map Loaded")
         if self.map_clean is None or self.map_clean == []:
@@ -44,6 +45,30 @@ class Displaying:
         print(f"\nCONNECTIONS LIST:\n{self.connection_name_list}")
         print(f"\nCONNECTIONS LIST PAR HUB:\n{self.connection_list}")
         print(f"\nDRONES LIST:\n{self.drone_list}")
+
+    def display_main_datas(self) -> None:
+        """Display Datas Informations of Map"""
+        if self.map_text is None:
+            raise ValueError("No Map Loaded")
+        if self.map_clean is None or self.map_clean == []:
+            raise ValueError("Map is not Cleaned")
+        if self.hub_list is None or self.hub_list == []:
+            raise ValueError("Zones are not listed")
+        if (
+            self.connection_name_list is None
+            or self.connection_name_list == []
+        ):
+            raise ValueError("Connections are not listed")
+        if self.nb_drones is None or self.nb_drones < 1:
+            raise ValueError("Quantite of drones not determined")
+        print()
+        print(f"NOMBRE DE DRONES: {self.nb_drones}")
+        print(f"\nSTART HUB: \n")
+        print(f"\nEND HUB: \n")
+        print(f"\nHUBS LIST:\n")
+        print(f"\nCONNECTIONS LIST:\n")
+
+
 
     def calcul_map_size(self) -> None:
         """Calcul size of the Map"""
@@ -92,10 +117,27 @@ class Displaying:
             f"Map Size X: {self.map_size_x}, Map Size Y: {self.map_size_y}"
         )  # TEMPO
 
+    def calcul_real_pos(self, hub: parsing.MapParsing.HubData) -> tuple[int, int]:
+        """Calcul coordonnees in graphical map"""
+        # Calcul Hub Coord
+        posX = hub.coordX + self.map_offsetX
+        posX = posX * (self.hub_size + self.space_hubs_X)
+        posX = posX + self.hub_size / 2  # pile au bord
+        posX += self.space_board_X
+
+        posY = hub.coordY + self.map_offsetY
+        posY = posY * (self.hub_size + self.space_hubs_Y)
+        posY = posY + self.hub_size / 2  # pile au bord
+        posY += self.space_board_Y
+
+        return posX, posY
+
     def displaying_map(self) -> None:
         """Display Map and maps elements"""
         posX: int = 0
         posY: int = 0
+        posX2: int = 0
+        posY2: int = 0
         color: str = "yellow"
 
         pygame.init()
@@ -118,19 +160,21 @@ class Displaying:
             # Fill window
             window.fill((99, 99, 99))
 
+            # connections setup on screen
+            for connection in self.connection_list:
+                posX, posY = self.calcul_real_pos(connection.hub1)
+                posX2, posY2 = self.calcul_real_pos(connection.hub2)
+                pygame.draw.line(
+                    window,
+                    pygame.Color("brown"),
+                    (posX, posY),
+                    (posX2, posY2),
+                    3
+                    )
+
             # hub setup on screen
             for hub in self.hub_list:
-
-                # Calcul Hub Coord
-                posX = hub[0].coordX + self.map_offsetX
-                posX = posX * (self.hub_size + self.space_hubs_X)
-                posX = posX + self.hub_size / 2  # pile au bord
-                posX += self.space_board_X
-
-                posY = hub[0].coordY + self.map_offsetY
-                posY = posY * (self.hub_size + self.space_hubs_Y)
-                posY = posY + self.hub_size / 2  # pile au bord
-                posY += self.space_board_Y
+                posX, posY = self.calcul_real_pos(hub[0])
 
                 # Display Hub
                 color = hub[1].color
