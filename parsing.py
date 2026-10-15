@@ -68,6 +68,13 @@ class MapParsing:
         coordY: int
         type: str
         drones_in_hub: list["MapParsing.Drone"] = Field(default_factory=list)
+        neighboring_hubs: list[
+            tuple[
+                "MapParsing.HubData",
+                "MapParsing.HubMeta"
+                ],
+            "MapParsing.Connection"
+            ] = Field(default_factory=list)
         nb_drones: int = Field(default=0, ge=0)
 
         @model_validator(mode="after")
@@ -377,6 +384,18 @@ class MapParsing:
             datas.nb_drones = self.nb_drones
         self.hub_list.append((datas, metas))
 
+    def init_neighboring_hubs(self) -> None:
+        """Init List of Neighbors"""
+        connection: MapParsing.Connection
+
+        # 1/ parcours la liste de connection et place chaque connection
+        #   et hub correspondand dans neighboring_hubs
+        for connection in self.connection_list:
+            pass
+        # 2/ parcours tous les hubs et trie neighboring_hubs,
+        #   par priorite de zone a parcourir
+        pass
+
     def map_parsing(self) -> None:
         """Parsing of All the Map"""
         tuple_tempo: tuple
@@ -413,6 +432,7 @@ class MapParsing:
         self.check_connections_list()
         self.create_connection_list()
         self.create_drone_list()
+        self.init_neighboring_hubs()
 
 
 # Modifier affichage des donnees dans le terminal pour etre conforme au sujet

@@ -3,32 +3,40 @@ class Drone(BaseModel):
 	hub_pos: "MapParsing.HubData | MapParsing.Connection"
 	positioning_log: list [int, "MapParsing.HubData | MapParsing.Connection"]
 
-    class Connection(BaseModel):
-        id: int
-        hub1: "MapParsing.HubData"
-        hub2: "MapParsing.HubData"
-        nb_drones_in: int = Field(default=0, ge=0)
-        drones_in_connect: list["MapParsing.Drone"] = Field(default_factory=list)
-        max_drones_allow: int = Field(default=1, ge=0)
-        
-    class HubData(BaseModel):
-        name: str = Field(min_length=1)
-        coordX: int
-        coordY: int
-        type: str
-        drones_in_hub: list["MapParsing.Drone"] = Field(default_factory=list)
-        nb_drones: int = Field(default=0, ge=0)
+class Connection(BaseModel):
+	id: int
+	hub1: "MapParsing.HubData"
+	hub2: "MapParsing.HubData"
+	nb_drones_in: int = Field(default=0, ge=0)
+	drones_in_connect: list["MapParsing.Drone"] = Field(default_factory=list)
+	max_drones_allow: int = Field(default=1, ge=0)
 
-        @model_validator(mode="after")
-        def hub_datas_validation(self) -> "MapParsing.HubData":
-            if "-" in self.name or " " in self.name:
-                raise ValueError("The name must not countain: '-', '_' or ' '")
-            return self
-            
-    self.connection_list: list[MapParsing.Connection] = []
-    self.hub_list: list[tuple[MapParsing.HubData, MapParsing.HubMeta]] = []
+class HubData(BaseModel):
+	name: str = Field(min_length=1)
+	coordX: int
+	coordY: int
+	type: str
+	drones_in_hub: list["MapParsing.Drone"] = Field(default_factory=list)
+	neighboring_hubs: list[
+            tuple[
+                "MapParsing.HubData",
+                "MapParsing.HubMeta"
+                ],
+            "MapParsing.Connection"
+            ] = Field(default_factory=list)
+	nb_drones: int = Field(default=0, ge=0)
+
+@model_validator(mode="after")
+def hub_datas_validation(self) -> "MapParsing.HubData":
+    if "-" in self.name or " " in self.name:
+        raise ValueError("The name must not countain: '-', '_' or ' '")
+    return self
     
-    self.nb_drones: int = 0
+self.connection_list: list[MapParsing.Connection] = []
+self.hub_list: list[tuple[MapParsing.HubData, MapParsing.HubMeta]] = []
+self.drone_list: list[MapParsing.Drone] = []
+
+self.nb_drones: int = 0
     
     
 def find_hub(self, name: str) -> Optional[tuple["MapParsing.HubData","MapParsing.HubMeta"]]:

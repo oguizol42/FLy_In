@@ -86,6 +86,7 @@ def main() -> None:
         map.map_parsing()
         # map.display_map_datas()
         map.display_main_datas()
+        map.drones_manager()
         map.calcul_map_size()
         map.displaying_map()
     except ValueError as e:
