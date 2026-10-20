@@ -48,8 +48,9 @@ class Displaying:
 
     def display_main_datas(self) -> None:
         """Display Datas Informations of Map"""
-        hub_datas: parsing.MapParsing.HubData
-        hub_metas: parsing.MapParsing.HubMeta
+        hub: parsing.MapParsing.Hub
+        hub_datas: parsing.MapParsing.Hub.HubData
+        hub_metas: parsing.MapParsing.Hub.HubMeta
         connection: parsing.MapParsing.Connection
 
         if self.map_text is None:
@@ -68,33 +69,33 @@ class Displaying:
         print()
         print(f"NOMBRE DE DRONES: {self.nb_drones}")
 
-        hub_datas, hub_metas = self.find_hub_by_type("start_hub")
+        hub = self.find_hub_by_type2("start_hub")
         print(
             f"\nSTART HUB: \n"
-            f"  Name: {hub_datas.name}\n"
-            f"  Coord: {hub_datas.coordX} {hub_datas.coordY}\n"
-            f"  Color: {hub_metas.color}\n"
-            f"  Max Drones: {hub_metas.max_drones}"
+            f"  Name: {hub.datas.name}\n"
+            f"  Coord: {hub.datas.coordX} {hub.datas.coordY}\n"
+            f"  Color: {hub.metas.color}\n"
+            f"  Max Drones: {hub.metas.max_drones}"
         )
 
-        hub_datas, hub_metas = self.find_hub_by_type("end_hub")
+        hub = self.find_hub_by_type2("end_hub")
         print(
             f"\nEND HUB: \n"
-            f"  Name: {hub_datas.name}\n"
-            f"  Coord: {hub_datas.coordX} {hub_datas.coordY}\n"
-            f"  Color: {hub_metas.color}\n"
-            f"  Max Drones: {hub_metas.max_drones}"
+            f"  Name: {hub.datas.name}\n"
+            f"  Coord: {hub.datas.coordX} {hub.datas.coordY}\n"
+            f"  Color: {hub.metas.color}\n"
+            f"  Max Drones: {hub.metas.max_drones}"
         )
 
         print("\nHUBS LIST:")
-        for hub_datas, hub_metas in self.hub_list:
-            if hub_datas.type == "start_hub" or hub_datas.type == "end_hub":
+        for hub in self.hub_list:
+            if hub.datas.type == "start_hub" or hub.datas.type == "end_hub":
                 continue
             print(
-                f"{hub_datas.name} {hub_datas.coordX} {hub_datas.coordY}, "
-                f"color: {hub_metas.color}, "
-                f"zone type: {hub_metas.zone_type}, "
-                f"max drones: {hub_metas.max_drones}"
+                f"{hub.datas.name} {hub.datas.coordX} {hub.datas.coordY}, "
+                f"color: {hub.metas.color}, "
+                f"zone type: {hub.metas.zone_type}, "
+                f"max drones: {hub.metas.max_drones}"
             )
 
         print("\nCONNECTIONS LIST:\n")
@@ -116,14 +117,14 @@ class Displaying:
             # print(
             #     f"coord X: {hub[0].coordX}, coord Y: {hub[0].coordY}"
             # )  # TEMPO
-            if hub[0].coordX < self.map_start_x:
-                self.map_start_x = hub[0].coordX
-            if hub[0].coordY < self.map_start_y:
-                self.map_start_y = hub[0].coordY
-            if hub[0].coordX > self.map_end_x:
-                self.map_end_x = hub[0].coordX
-            if hub[0].coordY > self.map_end_y:
-                self.map_end_y = hub[0].coordY
+            if hub.datas.coordX < self.map_start_x:
+                self.map_start_x = hub.datas.coordX
+            if hub.datas.coordY < self.map_start_y:
+                self.map_start_y = hub.datas.coordY
+            if hub.datas.coordX > self.map_end_x:
+                self.map_end_x = hub.datas.coordX
+            if hub.datas.coordY > self.map_end_y:
+                self.map_end_y = hub.datas.coordY
         # print(f"Map Start: [{self.map_start_x},{self.map_start_y}]")  # TEMPO
         # print(f"Map End: [{self.map_end_x},{self.map_end_y}]")  # TEMPO
 
@@ -156,7 +157,7 @@ class Displaying:
         # )  # TEMPO
 
     def calcul_real_pos(
-        self, hub: parsing.MapParsing.HubData
+        self, hub: parsing.MapParsing.Hub.HubData
     ) -> tuple[int, int]:
         """Calcul coordonnees in graphical map"""
         # Calcul Hub Coord
@@ -214,10 +215,10 @@ class Displaying:
 
             # hub setup on screen
             for hub in self.hub_list:
-                posX, posY = self.calcul_real_pos(hub[0])
+                posX, posY = self.calcul_real_pos(hub.datas)
 
                 # Display Hub
-                color = hub[1].color
+                color = hub.metas.color
 
                 pygame.draw.circle(
                     window,
@@ -252,7 +253,7 @@ class Displaying:
 
                 # Hub Name
                 police = pygame.font.Font(None, 20)
-                text = police.render(hub[0].name, True, pygame.Color("black"))
+                text = police.render(hub.datas.name, True, pygame.Color("black"))
 
                 text_zone = text.get_rect()
 

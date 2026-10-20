@@ -1,6 +1,7 @@
 import parsing
 import displaying
 import drones_manager
+from typing import TextIO
 
 # from pydantic import BaseModel, Field, ValidationError, model_validator
 # from typing import Optional
@@ -38,13 +39,13 @@ class Drone_Map(
 ):
     def __init__(self, file_name: str) -> None:
         self.file_name = file_name
-        self.map_text: str = None
+        self.map_text: parsing.Optional[str] = None
         super().__init__()
 
     def loading_map(self) -> None:
         """Loading Map from File"""
-        fd: int = open(self.file_name, "r")
-        self.map_text: str = fd.read()
+        fd: TextIO = open(self.file_name, "r")
+        self.map_text = fd.read()
         fd.close()
 
 
@@ -78,19 +79,31 @@ class Manage_flies:
 
 
 def main() -> None:
-    try:
-        # map: Drone_Map = Drone_Map("maps/easy/01_linear_path.txt")
-        map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
+    # try:
+    #     # map: Drone_Map = Drone_Map("maps/easy/01_linear_path.txt")
+    #     map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
 
-        map.loading_map()
-        map.map_parsing()
-        # map.display_map_datas()
-        map.display_main_datas()
-        map.drones_manager()
-        map.calcul_map_size()
-        map.displaying_map()
-    except ValueError as e:
-        print(e)
+    #     map.loading_map()
+    #     map.map_parsing()
+    #     # map.display_map_datas()
+    #     map.display_main_datas()
+    #     map.drones_manager()
+    #     map.calcul_map_size()
+    #     map.displaying_map()
+    # except ValueError as e:
+    #     print(e)
+
+    map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
+
+    map.loading_map()
+    map.map_parsing()
+
+    # map.display_map_datas()
+
+    map.display_main_datas()
+    map.drones_manager()
+    map.calcul_map_size()
+    map.displaying_map()
 
 
 if __name__ == "__main__":

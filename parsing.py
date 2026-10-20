@@ -15,7 +15,7 @@ class MapParsing:
         self.connection_name_list: list[tuple[tuple[str, str], int]] = []
 
         # Definitive Datas
-        self.hub_list: list[tuple[MapParsing.HubData, MapParsing.HubMeta]] = []
+        self.hub_list: list[MapParsing.Hub] = []
         self.connection_list: list[MapParsing.Connection] = []
         self.drone_list: list[MapParsing.Drone] = []
         self.nb_drones: int = 0
@@ -41,57 +41,151 @@ class MapParsing:
         hub = "hub"
         connection = "connection"
 
-    class HubMetaZone(str, Enum):
-        normal = "normal"
-        blocked = "blocked"
-        restricted = "restricted"
-        priority = "priority"
+    class Hub():
+        def __init__(self, self_map: "MapParsing") -> None:
+            self.map: MapParsing = self_map
+            self.datas: MapParsing.Hub.HubData
+            self.metas: MapParsing.Hub.HubMeta
+            self.neighboring_hubs: list[
+                                tuple[
+                                    "MapParsing.Hub",
+                                    "MapParsing.Connection"
+                                ]
+                            ] = []
 
-    # Tester conformiter d'une couleur (couleur existente,
-    # definition de la couleur en un seul mot)
-    class HubMeta(BaseModel):
-        zone_type: Optional[str] = Field(default="normal")
-        color: Optional[str] = Field(default=None)
-        max_drones: int = Field(default=1, ge=0)
+        class HubMetaZone(str, Enum):
+            normal = "normal"
+            blocked = "blocked"
+            restricted = "restricted"
+            priority = "priority"
 
-        @model_validator(mode="after")
-        def hub_meta_validation(self) -> "MapParsing.HubMeta":
-            if self.zone_type not in [e.value for e in MapParsing.HubMetaZone]:
+        class HubData(BaseModel):
+            name: str = Field(min_length=1)
+            coordX: int
+            coordY: int
+            type: str
+            drones_in_hub: list["MapParsing.Drone"] = Field(default_factory=list)
+            nb_drones: int = Field(default=0, ge=0)
+
+            @model_validator(mode="after")
+            def hub_datas_validation(self) -> "MapParsing.Hub.HubData":
+                if "-" in self.name or " " in self.name:
+                    raise ValueError("The name must not countain: '-', '_' or ' '")
+                return self
+
+        class HubMeta(BaseModel):
+            zone_type: str = Field(default="normal")
+            color: Optional[str] = Field(default=None)
+            max_drones: int = Field(default=1, ge=0)
+
+            @model_validator(mode="after")
+            def hub_meta_validation(self) -> "MapParsing.Hub.HubMeta":
+                if self.zone_type not in [e.value for e in MapParsing.Hub.HubMetaZone]:
+                    raise ValueError(
+                        f"{self.zone_type} " "is not a conform type of zone"
+                    )
+                return self
+
+        def check_hub_datas(self, string: str, type: str) -> "MapParsing.Hub.HubData":
+            """Check if hub Datas are Conform"""
+            datas_str: str = self.map.recup_datas_only(string)
+            datas: MapParsing.Hub.HubData
+
+            datas_separate: list[str] = datas_str.split(" ")
+
+            if not len(datas_separate) == 3:
                 raise ValueError(
-                    f"{self.zone_type} " "is not a conform type of zone"
+                    f"{datas_separate} is not conform"
+                    ", it must be countain 3 datas"
                 )
-            return self
+            datas = self.HubData(
+                name=datas_separate[0],
+                coordX=int(datas_separate[1]),
+                coordY=int(datas_separate[2]),
+                type=type,
+            )
+            if datas.name in self.map.name_used:
+                raise ValueError(f"This name: {datas.name} is already used")
+            if (datas.coordX, datas.coordY) in self.map.coord_list:
+                raise ValueError(
+                    f"Coordinates: {datas.coordX}, "
+                    f"{datas.coordY} is already used"
+                )
 
-    class HubData(BaseModel):
-        name: str = Field(min_length=1)
-        coordX: int
-        coordY: int
-        type: str
-        drones_in_hub: list["MapParsing.Drone"] = Field(default_factory=list)
-        neighboring_hubs: list[
-            tuple[
-                "MapParsing.HubData",
-                "MapParsing.HubMeta"
-                ],
-            "MapParsing.Connection"
-            ] = Field(default_factory=list)
-        nb_drones: int = Field(default=0, ge=0)
+            self.map.name_used.append(datas.name)
+            self.map.coord_list.append((datas.coordX, datas.coordY))
 
-        @model_validator(mode="after")
-        def hub_datas_validation(self) -> "MapParsing.HubData":
-            if "-" in self.name or " " in self.name:
-                raise ValueError("The name must not countain: '-', '_' or ' '")
-            return self
+            return datas
+
+        def check_hub_metas(self, string: str) -> "MapParsing.Hub.HubMeta":
+            """Check if hub Meta is Conform"""
+            tuple_tempo: tuple
+            metas_str: str = self.map.recup_meta_only(string)
+            metas: MapParsing.Hub.HubMeta
+
+            zone_type_str: str = "normal"
+            color_str: str | None = None
+            max_drones_str: str = "1"
+            zone_type_check: bool = False
+            color_check: bool = False
+            max_drones_check: bool = False
+
+            if not metas_str == "[]":
+                metas_separate: tuple = metas_str.split(" ")
+
+                if len(metas_separate) > 3:
+                    raise ValueError(
+                        f"{metas_separate} is not conform, "
+                        "it must be countain 3 metadatas maximum"
+                    )
+                for e in metas_separate:
+                    tuple_tempo = e.split("=")
+                    if not len(tuple_tempo) == 2:
+                        raise ValueError(f"{e} is not conform metadata for hub")
+                    if tuple_tempo[0] == "zone" and zone_type_check is False:
+                        zone_type_str = tuple_tempo[1]
+                        zone_type_check: bool = True
+
+                    elif tuple_tempo[0] == "color" and color_check is False:
+                        color_str = tuple_tempo[1]
+                        color_check = True
+
+                    elif (
+                        tuple_tempo[0] == "max_drones"
+                        and max_drones_check is False
+                    ):
+                        max_drones_str = tuple_tempo[1]
+                        max_drones_check = True
+
+                    elif tuple_tempo[0] is not None:
+                        raise ValueError(f"{e} is not conform metadata for hub")
+            if max_drones_str is None:
+                max_drones_str = "1"
+            metas = MapParsing.Hub.HubMeta(
+                zone_type=zone_type_str,
+                color=color_str,
+                max_drones=int(max_drones_str),
+            )
+
+            return metas
+
+        def check_hub(self, line: str, type: str) -> None:
+            """Check hub and create list of hubs"""
+            self.datas: MapParsing.Hub.HubData = self.check_hub_datas(line, type)
+            self.metas: MapParsing.Hub.HubMeta = self.check_hub_metas(line)
+            if type == "start_hub":
+                self.datas.nb_drones = self.map.nb_drones
+            self.map.hub_list.append(self)
 
     class Drone(BaseModel):
         id: int
-        hub_pos: "MapParsing.HubData | MapParsing.Connection"
-        positioning_log: list["MapParsing.HubData | MapParsing.Connection"]
+        hub_pos: "MapParsing.Hub.HubData | MapParsing.Connection"
+        positioning_log: list["MapParsing.Hub.HubData | MapParsing.Connection"]
 
     class Connection(BaseModel):
         id: int
-        hub1: "MapParsing.HubData"
-        hub2: "MapParsing.HubData"
+        hub1: "MapParsing.Hub.HubData"
+        hub2: "MapParsing.Hub.HubData"
         nb_drones_in: int = Field(default=0, ge=0)
         drones_in_connect: list["MapParsing.Drone"] = Field(
             default_factory=list
@@ -108,13 +202,13 @@ class MapParsing:
                 )
             return self
 
-        # INSTANCIER LES CONNECTIONS  ET LES DRONES + CREER LES FONCTIONS drones_manager
-
     def check_type(self, line: str) -> str:
         """Check and Return type or a raise"""
+        type_tuple: list[str]
+
         if line is None:
             raise ValueError("There is no line in argument")
-        type_tuple: tuple[str, str] = line.split(":")
+        type_tuple = line.split(":")
         if len(type_tuple) != 2:
             raise ValueError("There is no type argument identifiable")
         if type_tuple[0] not in [c.value for c in self.DatasType]:
@@ -175,7 +269,7 @@ class MapParsing:
 
     def check_connection_meta(self, meta: str) -> int:
         """Check Meta Datas"""
-        tuple_tempo: tuple[str, str]
+        tuple_tempo: list[str, str]
         number: int
 
         if meta is None or len(meta) == 0:
@@ -197,7 +291,7 @@ class MapParsing:
 
     def check_connection_datas(self, line: str) -> None:
         """Check Datas of Connections"""
-        tuple_tempo: tuple[str, str]
+        tuple_tempo: list[str]
         datas: str
         meta: str
 
@@ -238,26 +332,46 @@ class MapParsing:
                     f"{connection[1]} does not exist"
                 )
 
-    def find_hub(
+    def find_hub_by_name(
         self, name: str
-    ) -> Optional[tuple["MapParsing.HubData", "MapParsing.HubMeta"]]:
+    ) -> Optional[tuple["MapParsing.Hub.HubData", "MapParsing.Hub.HubMeta", "MapParsing.Hub"]]:
         """Return hub with name"""
         for hub in self.hub_list:
-            if hub[0].name == name:
-                return hub[0], hub[1]
+            if hub.datas.name == name:
+                return hub.datas, hub.metas, hub
+        return None
 
     def find_hub_by_type(
         self, type: str
-    ) -> Optional[tuple["MapParsing.HubData", "MapParsing.HubMeta"]]:
+    ) -> Optional[tuple["MapParsing.Hub.HubData", "MapParsing.Hub.HubMeta", "MapParsing.Hub"]]:
         """Return hub with name"""
         for hub in self.hub_list:
-            if hub[0].type == type:
-                return hub[0], hub[1]
+            if hub.datas.type == type:
+                return hub.datas, hub.metas, hub
+        return None
+
+    def find_hub_by_name2(
+        self, name: str
+    ) -> Optional["MapParsing.Hub"]:
+        """Return hub with name"""
+        for hub in self.hub_list:
+            if hub.datas.name == name:
+                return hub
+        return None
+
+    def find_hub_by_type2(
+        self, type: str
+    ) -> Optional["MapParsing.Hub"]:
+        """Return hub with name"""
+        for hub in self.hub_list:
+            if hub.datas.type == type:
+                return hub
+        return None
 
     def create_connection_list(self) -> None:
         """Create list of connection by hub"""
-        huba: MapParsing.HubData
-        hubb: MapParsing.HubData
+        huba: MapParsing.Hub.HubData
+        hubb: MapParsing.Hub.HubData
         connect: MapParsing.Connection
 
         if (
@@ -267,8 +381,8 @@ class MapParsing:
             raise ValueError("There is not connection defined")
 
         for connection in self.connection_name_list:
-            huba, _ = self.find_hub(connection[0][0])
-            hubb, _ = self.find_hub(connection[0][1])
+            huba, _, _ = self.find_hub_by_name(connection[0][0])
+            hubb, _, _ = self.find_hub_by_name(connection[0][1])
             if huba is None or hubb is None:
                 raise ValueError("Connections list is not conform")
             self.nb_connections += 1
@@ -282,10 +396,10 @@ class MapParsing:
 
     def create_drone_list(self) -> None:
         """Create list of drones"""
-        hub_start: MapParsing.HubData
+        hub_start: MapParsing.Hub.HubData
         new_drone: MapParsing.Drone
 
-        hub_start, _ = self.find_hub_by_type("start_hub")
+        hub_start, _, _ = self.find_hub_by_type("start_hub")
         for n in range(self.nb_drones):
             new_drone = self.Drone(
                 id=n + 1, hub_pos=hub_start, positioning_log=[hub_start]
@@ -293,96 +407,7 @@ class MapParsing:
             self.drone_list.append(new_drone)
             hub_start.drones_in_hub.append(new_drone)
 
-    def check_hub_meta(self, string: str) -> "MapParsing.HubMeta":
-        """Check if hub Meta is Conform"""
-        tuple_tempo: tuple
-        metas_str: str = self.recup_meta_only(string)
-        metas: MapParsing.HubMeta
-
-        zone_type_str: str = "normal"
-        color_str: str = None
-        max_drones_str: str = "1"
-        zone_type_check: bool = False
-        color_check: bool = False
-        max_drones_check: bool = False
-
-        if not metas_str == "[]":
-            metas_separate: tuple = metas_str.split(" ")
-
-            if len(metas_separate) > 3:
-                raise ValueError(
-                    f"{metas_separate} is not conform, "
-                    "it must be countain 3 metadatas maximum"
-                )
-            for e in metas_separate:
-                tuple_tempo = e.split("=")
-                if not len(tuple_tempo) == 2:
-                    raise ValueError(f"{e} is not conform metadata for hub")
-                if tuple_tempo[0] == "zone" and zone_type_check is False:
-                    zone_type_str = tuple_tempo[1]
-                    zone_type_check: bool = True
-
-                elif tuple_tempo[0] == "color" and color_check is False:
-                    color_str = tuple_tempo[1]
-                    color_check = True
-
-                elif (
-                    tuple_tempo[0] == "max_drones"
-                    and max_drones_check is False
-                ):
-                    max_drones_str = tuple_tempo[1]
-                    max_drones_check = True
-
-                elif tuple_tempo[0] is not None:
-                    raise ValueError(f"{e} is not conform metadata for hub")
-        if max_drones_str is None:
-            max_drones_str = "1"
-        metas = MapParsing.HubMeta(
-            zone_type=zone_type_str,
-            color=color_str,
-            max_drones=int(max_drones_str),
-        )
-
-        return metas
-
-    def check_hub_datas(self, string: str, type: str) -> "MapParsing.HubData":
-        """Check if hub Datas are Conform"""
-        datas_str: str = self.recup_datas_only(string)
-        datas: MapParsing.HubData
-
-        datas_separate: tuple[str, str, str] = datas_str.split(" ")
-
-        if not len(datas_separate) == 3:
-            raise ValueError(
-                f"{datas_separate} is not conform"
-                ", it must be countain 3 datas"
-            )
-        datas = MapParsing.HubData(
-            name=datas_separate[0],
-            coordX=int(datas_separate[1]),
-            coordY=int(datas_separate[2]),
-            type=type,
-        )
-        if datas.name in self.name_used:
-            raise ValueError(f"This name: {datas.name} is already used")
-        if (datas.coordX, datas.coordY) in self.coord_list:
-            raise ValueError(
-                f"Coordinates: {datas.coordX}, "
-                f"{datas.coordY} is already used"
-            )
-
-        self.name_used.append(datas.name)
-        self.coord_list.append((datas.coordX, datas.coordY))
-
-        return datas
-
-    def check_hub(self, line: str, type: str) -> None:
-        """Check hub and create list of hubs"""
-        datas: MapParsing.HubData = self.check_hub_datas(line, type)
-        metas: MapParsing.HubMeta = self.check_hub_meta(line)
-        if type == "start_hub":
-            datas.nb_drones = self.nb_drones
-        self.hub_list.append((datas, metas))
+    
 
     def init_neighboring_hubs(self) -> None:
         """Init List of Neighbors"""
@@ -399,7 +424,7 @@ class MapParsing:
     def map_parsing(self) -> None:
         """Parsing of All the Map"""
         tuple_tempo: tuple
-        type: str = None
+        type: Optional[str] = None
 
         self.clean_map()
         for i in range(len(self.map_clean)):
@@ -427,7 +452,8 @@ class MapParsing:
             elif type == "connection":
                 self.check_connection_datas(self.map_clean[i])
             else:
-                self.check_hub(self.map_clean[i], type)
+                hub: MapParsing.Hub = self.Hub(self)
+                hub.check_hub(self.map_clean[i], type)
 
         self.check_connections_list()
         self.create_connection_list()
