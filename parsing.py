@@ -11,8 +11,8 @@ class MapParsing:
         self.types_used: list[str] = []
         self.name_used: list[str] = []
         self.coord_list: list[tuple[int, int]] = []
-        self.connection_check_list: list[tuple[str, str]] = []
-        self.connection_name_list: list[tuple[tuple[str, str], int]] = []
+        self.connection_check_list: list[list[str]] = []
+        self.connection_name_list: list[tuple[list[str], int]] = []
 
         # Definitive Datas
         self.hub_list: list[MapParsing.Hub] = []
@@ -23,13 +23,15 @@ class MapParsing:
 
     def clean_map(self) -> None:
         """Clean Map Datas"""
+        split_tempo: list[str]
+
         if self.map_text is None or self.map_text == []:
             raise ValueError("No datas read")
         map_list: list[str] = self.map_text.split("\n")
         for one_line in map_list:
-            tuple_tempo = one_line.split("#")
-            if len(tuple_tempo[0]) > 1:
-                self.map_clean.append(tuple_tempo[0])
+            split_tempo = one_line.split("#")
+            if len(split_tempo[0]) > 1:
+                self.map_clean.append(split_tempo[0])
         if len(self.map_clean) < 6:
             self.map_clean = []
             raise ValueError("Not enough values in the map definition")
@@ -41,17 +43,14 @@ class MapParsing:
         hub = "hub"
         connection = "connection"
 
-    class Hub():
+    class Hub:
         def __init__(self, self_map: "MapParsing") -> None:
             self.map: MapParsing = self_map
             self.datas: MapParsing.Hub.HubData
             self.metas: MapParsing.Hub.HubMeta
             self.neighboring_hubs: list[
-                                tuple[
-                                    "MapParsing.Hub",
-                                    "MapParsing.Connection"
-                                ]
-                            ] = []
+                tuple["MapParsing.Hub", "MapParsing.Connection"]
+            ] = []
 
         class HubMetaZone(str, Enum):
             normal = "normal"
@@ -64,13 +63,17 @@ class MapParsing:
             coordX: int
             coordY: int
             type: str
-            drones_in_hub: list["MapParsing.Drone"] = Field(default_factory=list)
+            drones_in_hub: list["MapParsing.Drone"] = Field(
+                default_factory=list
+            )
             nb_drones: int = Field(default=0, ge=0)
 
             @model_validator(mode="after")
             def hub_datas_validation(self) -> "MapParsing.Hub.HubData":
                 if "-" in self.name or " " in self.name:
-                    raise ValueError("The name must not countain: '-', '_' or ' '")
+                    raise ValueError(
+                        "The name must not countain: '-', '_' or ' '"
+                    )
                 return self
 
         class HubMeta(BaseModel):
@@ -80,13 +83,17 @@ class MapParsing:
 
             @model_validator(mode="after")
             def hub_meta_validation(self) -> "MapParsing.Hub.HubMeta":
-                if self.zone_type not in [e.value for e in MapParsing.Hub.HubMetaZone]:
+                if self.zone_type not in [
+                    e.value for e in MapParsing.Hub.HubMetaZone
+                ]:
                     raise ValueError(
                         f"{self.zone_type} " "is not a conform type of zone"
                     )
                 return self
 
-        def check_hub_datas(self, string: str, type: str) -> "MapParsing.Hub.HubData":
+        def check_hub_datas(
+            self, string: str, type: str
+        ) -> "MapParsing.Hub.HubData":
             """Check if hub Datas are Conform"""
             datas_str: str = self.map.recup_datas_only(string)
             datas: MapParsing.Hub.HubData
@@ -119,7 +126,7 @@ class MapParsing:
 
         def check_hub_metas(self, string: str) -> "MapParsing.Hub.HubMeta":
             """Check if hub Meta is Conform"""
-            tuple_tempo: tuple
+            split_tempo: list[str]
             metas_str: str = self.map.recup_meta_only(string)
             metas: MapParsing.Hub.HubMeta
 
@@ -131,7 +138,7 @@ class MapParsing:
             max_drones_check: bool = False
 
             if not metas_str == "[]":
-                metas_separate: tuple = metas_str.split(" ")
+                metas_separate: list[str] = metas_str.split(" ")
 
                 if len(metas_separate) > 3:
                     raise ValueError(
@@ -139,26 +146,30 @@ class MapParsing:
                         "it must be countain 3 metadatas maximum"
                     )
                 for e in metas_separate:
-                    tuple_tempo = e.split("=")
-                    if not len(tuple_tempo) == 2:
-                        raise ValueError(f"{e} is not conform metadata for hub")
-                    if tuple_tempo[0] == "zone" and zone_type_check is False:
-                        zone_type_str = tuple_tempo[1]
-                        zone_type_check: bool = True
+                    split_tempo = e.split("=")
+                    if not len(split_tempo) == 2:
+                        raise ValueError(
+                            f"{e} is not conform metadata for hub"
+                        )
+                    if split_tempo[0] == "zone" and zone_type_check is False:
+                        zone_type_str = split_tempo[1]
+                        zone_type_check = True
 
-                    elif tuple_tempo[0] == "color" and color_check is False:
-                        color_str = tuple_tempo[1]
+                    elif split_tempo[0] == "color" and color_check is False:
+                        color_str = split_tempo[1]
                         color_check = True
 
                     elif (
-                        tuple_tempo[0] == "max_drones"
+                        split_tempo[0] == "max_drones"
                         and max_drones_check is False
                     ):
-                        max_drones_str = tuple_tempo[1]
+                        max_drones_str = split_tempo[1]
                         max_drones_check = True
 
-                    elif tuple_tempo[0] is not None:
-                        raise ValueError(f"{e} is not conform metadata for hub")
+                    elif split_tempo[0] is not None:
+                        raise ValueError(
+                            f"{e} is not conform metadata for hub"
+                        )
             if max_drones_str is None:
                 max_drones_str = "1"
             metas = MapParsing.Hub.HubMeta(
@@ -171,8 +182,8 @@ class MapParsing:
 
         def check_hub(self, line: str, type: str) -> None:
             """Check hub and create list of hubs"""
-            self.datas: MapParsing.Hub.HubData = self.check_hub_datas(line, type)
-            self.metas: MapParsing.Hub.HubMeta = self.check_hub_metas(line)
+            self.datas = self.check_hub_datas(line, type)
+            self.metas = self.check_hub_metas(line)
             if type == "start_hub":
                 self.datas.nb_drones = self.map.nb_drones
             self.map.hub_list.append(self)
@@ -204,51 +215,51 @@ class MapParsing:
 
     def check_type(self, line: str) -> str:
         """Check and Return type or a raise"""
-        type_tuple: list[str]
+        type_split: list[str]
 
         if line is None:
             raise ValueError("There is no line in argument")
-        type_tuple = line.split(":")
-        if len(type_tuple) != 2:
+        type_split = line.split(":")
+        if len(type_split) != 2:
             raise ValueError("There is no type argument identifiable")
-        if type_tuple[0] not in [c.value for c in self.DatasType]:
-            raise ValueError(f"'{type_tuple[0]}' is not correct type")
-        if type_tuple[0] in self.types_used:
-            raise ValueError(f"'{type_tuple[0]}' is used several times")
+        if type_split[0] not in [c.value for c in self.DatasType]:
+            raise ValueError(f"'{type_split[0]}' is not correct type")
+        if type_split[0] in self.types_used:
+            raise ValueError(f"'{type_split[0]}' is used several times")
 
         if (
-            type_tuple[0] == "nb_drones"
-            or type_tuple[0] == "start_hub"
-            or type_tuple[0] == "end_hub"
+            type_split[0] == "nb_drones"
+            or type_split[0] == "start_hub"
+            or type_split[0] == "end_hub"
         ):
-            self.types_used.append(type_tuple[0])
+            self.types_used.append(type_split[0])
 
-        return type_tuple[0]
+        return type_split[0]
 
     def recup_datas_only(self, string: str) -> str:
         """Return Datas String of a String"""
-        tuple_tempo: tuple
+        split_tempo: list[str]
 
         if string is None:
             raise ValueError("There is no string in argument")
-        tuple_tempo = string.split(" [")
-        tuple_tempo = tuple_tempo[0].split(": ")
-        if not len(tuple_tempo) == 2:
+        split_tempo = string.split(" [")
+        split_tempo = split_tempo[0].split(": ")
+        if not len(split_tempo) == 2:
             raise ValueError("String not conform")
 
-        return tuple_tempo[1]
+        return split_tempo[1]
 
     def recup_meta_only(self, string: str) -> str:
         """Return Metadata String of a String"""
-        tuple_tempo: tuple
+        split_tempo: list[str]
         meta: str = "[]"
 
         if string is not None and not len(string) == 0:
-            tuple_tempo = string.split("[")
-            if len(tuple_tempo) > 2:
+            split_tempo = string.split("[")
+            if len(split_tempo) > 2:
                 raise ValueError("Too many MetaDatas")
-            elif len(tuple_tempo) == 2:
-                tuple_tempo = tuple_tempo[1].split("]")
+            elif len(split_tempo) == 2:
+                tuple_tempo = split_tempo[1].split("]")
                 if len(tuple_tempo) != 2:
                     raise ValueError("Definition of MetaDatas is not conform")
                 meta = tuple_tempo[0]
@@ -269,29 +280,29 @@ class MapParsing:
 
     def check_connection_meta(self, meta: str) -> int:
         """Check Meta Datas"""
-        tuple_tempo: list[str, str]
+        split_tempo: list[str]
         number: int
 
         if meta is None or len(meta) == 0:
             raise ValueError("No metadata given for checking")
-        tuple_tempo = meta.split("=")
-        if not len(tuple_tempo) == 2:
+        split_tempo = meta.split("=")
+        if not len(split_tempo) == 2:
             raise ValueError(f"{meta} don't have good quantites of datas")
-        elif not tuple_tempo[0] == "max_link_capacity":
+        elif not split_tempo[0] == "max_link_capacity":
             raise ValueError(
-                f"{tuple_tempo[0]} " "if not a conform metadata for connection"
+                f"{split_tempo[0]} " "if not a conform metadata for connection"
             )
-        number = int(tuple_tempo[1])
+        number = int(split_tempo[1])
         if number < 1:
             raise ValueError(
-                f"Connection {tuple_tempo[0]} "
+                f"Connection {split_tempo[0]} "
                 "cant't be have {number} of capacity"
             )
         return number
 
     def check_connection_datas(self, line: str) -> None:
         """Check Datas of Connections"""
-        tuple_tempo: list[str]
+        split_tempo: list[str]
         datas: str
         meta: str
 
@@ -304,14 +315,14 @@ class MapParsing:
         qty_connections = self.check_connection_meta(meta)
 
         # Check if Valid Datas and Doublons
-        tuple_tempo = tuple(datas.split("-"))
-        if not len(tuple_tempo) == 2:
+        split_tempo = datas.split("-")
+        if not len(split_tempo) == 2:
             raise ValueError("Connection Datas are not valid")
-        if tuple_tempo in self.connection_check_list:
-            raise ValueError(f"{tuple_tempo} is a doublon in Connection Datas")
-        self.connection_check_list.append(tuple_tempo)
-        self.connection_check_list.append((tuple_tempo[1], tuple_tempo[0]))
-        self.connection_name_list.append((tuple_tempo, qty_connections))
+        if split_tempo in self.connection_check_list:
+            raise ValueError(f"{split_tempo} is a doublon in Connection Datas")
+        self.connection_check_list.append(split_tempo)
+        self.connection_check_list.append([split_tempo[1], split_tempo[0]])
+        self.connection_name_list.append((split_tempo, qty_connections))
 
     def check_connections_list(self) -> None:
         """Check if Each Connection Exist"""
@@ -332,36 +343,36 @@ class MapParsing:
                     f"{connection[1]} does not exist"
                 )
 
-    def find_hub_by_name(
-        self, name: str
-    ) -> Optional[tuple["MapParsing.Hub.HubData", "MapParsing.Hub.HubMeta", "MapParsing.Hub"]]:
+    def find_hub_by_name(self, name: str) -> tuple[
+        Optional["MapParsing.Hub.HubData"],
+        Optional["MapParsing.Hub.HubMeta"],
+        Optional["MapParsing.Hub"],
+    ]:
         """Return hub with name"""
         for hub in self.hub_list:
             if hub.datas.name == name:
                 return hub.datas, hub.metas, hub
-        return None
+        return (None, None, None)
 
-    def find_hub_by_type(
-        self, type: str
-    ) -> Optional[tuple["MapParsing.Hub.HubData", "MapParsing.Hub.HubMeta", "MapParsing.Hub"]]:
+    def find_hub_by_type(self, type: str) -> tuple[
+        Optional["MapParsing.Hub.HubData"],
+        Optional["MapParsing.Hub.HubMeta"],
+        Optional["MapParsing.Hub"],
+    ]:
         """Return hub with name"""
         for hub in self.hub_list:
             if hub.datas.type == type:
                 return hub.datas, hub.metas, hub
-        return None
+        return (None, None, None)
 
-    def find_hub_by_name2(
-        self, name: str
-    ) -> Optional["MapParsing.Hub"]:
+    def find_hub_by_name2(self, name: str) -> Optional["MapParsing.Hub"]:
         """Return hub with name"""
         for hub in self.hub_list:
             if hub.datas.name == name:
                 return hub
         return None
 
-    def find_hub_by_type2(
-        self, type: str
-    ) -> Optional["MapParsing.Hub"]:
+    def find_hub_by_type2(self, type: str) -> Optional["MapParsing.Hub"]:
         """Return hub with name"""
         for hub in self.hub_list:
             if hub.datas.type == type:
@@ -370,8 +381,8 @@ class MapParsing:
 
     def create_connection_list(self) -> None:
         """Create list of connection by hub"""
-        huba: MapParsing.Hub.HubData
-        hubb: MapParsing.Hub.HubData
+        huba: Optional[MapParsing.Hub.HubData]
+        hubb: Optional[MapParsing.Hub.HubData]
         connect: MapParsing.Connection
 
         if (
@@ -396,7 +407,7 @@ class MapParsing:
 
     def create_drone_list(self) -> None:
         """Create list of drones"""
-        hub_start: MapParsing.Hub.HubData
+        hub_start: Optional[MapParsing.Hub.HubData]
         new_drone: MapParsing.Drone
 
         hub_start, _, _ = self.find_hub_by_type("start_hub")
@@ -406,8 +417,6 @@ class MapParsing:
             )
             self.drone_list.append(new_drone)
             hub_start.drones_in_hub.append(new_drone)
-
-    
 
     def init_neighboring_hubs(self) -> None:
         """Init List of Neighbors"""
@@ -423,7 +432,7 @@ class MapParsing:
 
     def map_parsing(self) -> None:
         """Parsing of All the Map"""
-        tuple_tempo: tuple
+        split_tempo: list[str]
         type: Optional[str] = None
 
         self.clean_map()
@@ -437,10 +446,10 @@ class MapParsing:
                         f"The first type is '{type}' "
                         "but it should have been 'nb_drones'"
                     )
-                tuple_tempo = tuple(self.map_clean[i].split(":"))
+                split_tempo = self.map_clean[i].split(":")
                 # if not len(tuple_tempo) == 2:
                 #     raise ValueError(f"Definition of {type} is not valid")
-                self.nb_drones = int(tuple_tempo[1])
+                self.nb_drones = int(split_tempo[1])
                 if self.nb_drones < 1:
                     raise ValueError(
                         f"{self.nb_drones} is not "

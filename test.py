@@ -51,7 +51,7 @@ def main() -> None:
     loading_test(test_map)
     try:
         test_map.map_parsing()
-        test_map.display_map()
+        # test_map.display_map()
     except ValueError as e:
         print(e)
     except ValidationError as e:

@@ -39,7 +39,7 @@ class Drone_Map(
 ):
     def __init__(self, file_name: str) -> None:
         self.file_name = file_name
-        self.map_text: parsing.Optional[str] = None
+        self.map_text: parsing.Optional[list[str]] = None
         super().__init__()
 
     def loading_map(self) -> None:
