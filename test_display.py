@@ -27,7 +27,8 @@ while en_cours:
     # Dessin
     ecran.fill(NOIR)  # On efface l'écran avec du noir
 
-    # On dessine un rectangle bleu (sur 'ecran', couleur 'BLEU', [X, Y, Largeur, Hauteur])
+    # On dessine un rectangle bleu
+    # (sur 'ecran', couleur 'BLEU', [X, Y, Largeur, Hauteur])
     pygame.draw.rect(ecran, BLEU, [350, 250, 100, 100])
     # pygame.draw.circle(ecran, (0, 128, 0), [51, 51], 50)
     pygame.draw.circle(ecran, (0, 0, 255), [51, 51], 30)
