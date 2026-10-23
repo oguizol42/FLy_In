@@ -1,9 +1,22 @@
 import pygame
 import sys
 import parsing
+from typing import Optional
 
 
 class Displaying:
+    map_text: Optional[str]
+    map_clean: list[str]
+    hub_list: list[parsing.MapParsing.Hub]
+    connection_name_list: list[tuple[list[str], int]]
+    connection_list: list[parsing.MapParsing.Connection]
+    drone_list: list[parsing.MapParsing.Drone]
+    nb_drones: int
+
+    def find_hub_by_type2(
+        self, type: str
+    ) -> Optional[parsing.MapParsing.Hub]: ...
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -50,9 +63,9 @@ class Displaying:
 
     def display_main_datas(self) -> None:
         """Display Datas Informations of Map"""
-        hub: parsing.MapParsing.Hub
-        hub_datas: parsing.MapParsing.Hub.HubData
-        hub_metas: parsing.MapParsing.Hub.HubMeta
+        hub: Optional[parsing.MapParsing.Hub]
+        # hub_datas: parsing.MapParsing.Hub.HubData
+        # hub_metas: parsing.MapParsing.Hub.HubMeta
         connection: parsing.MapParsing.Connection
 
         if self.map_text is None:
@@ -72,6 +85,9 @@ class Displaying:
         print(f"NOMBRE DE DRONES: {self.nb_drones}")
 
         hub = self.find_hub_by_type2("start_hub")
+        if hub is None:
+            raise ValueError("start_hub is not defined in this map")
+
         print(
             f"\nSTART HUB: \n"
             f"  Name: {hub.datas.name}\n"
@@ -81,6 +97,9 @@ class Displaying:
         )
 
         hub = self.find_hub_by_type2("end_hub")
+        if hub is None:
+            raise ValueError("end_hub is not defined in this map")
+
         print(
             f"\nEND HUB: \n"
             f"  Name: {hub.datas.name}\n"
@@ -223,7 +242,8 @@ class Displaying:
                 posX, posY = self.calcul_real_pos(hub.datas)
 
                 # Display Hub
-                color = hub.metas.color
+                if hub.metas.color is not None:
+                    color = hub.metas.color
 
                 pygame.draw.circle(
                     window,
@@ -279,17 +299,21 @@ class Displaying:
 
     def displaying_simulation(self) -> None:
         """Display simulation step by step"""
-        # • The simulation must output the step-by-step movement of drones from the start to
-        #   the end zone.
+        # • The simulation must output the step-by-step movement of drones
+        #   from the start to the end zone.
         # • Each simulation turn is represented by a line.
-        # • A line must list all the drone movements that occur during that turn, space-
-        # separated. Each movement must follow the format: D<ID>-<zone>, or D<ID>-<connection>
+        # • A line must list all the drone movements
+        #   that occur during that turn, space-
+        # separated. Each movement must follow the format:
+        #           D<ID>-<zone>, or D<ID>-<connection>
         # in case of drones still in flight toward restricted zones.
         #     ◦ D<ID> refers to the unique drone identifier (e.g., D1, D2).
         #     ◦ <zone> is the name of the destination zone.
-        #     ◦ <connection> is the name of the connection toward a restricted zone.
+        #     ◦ <connection> is the name of the connection toward
+        #       a restricted zone.
         # • Drones that do not move in a given turn are omitted from that line.
-        # • Drones that reach the end zone are considered delivered and are no longer tracked.
+        # • Drones that reach the end zone are considered delivered
+        #   and are no longer tracked.
         # • The simulation ends when all drones have reached the end zone.
         # • Example:
         #     D1-roof1 D2-corridorA

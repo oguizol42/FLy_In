@@ -24,18 +24,22 @@ class DronesManager:
 
 # Zone types:
 #     ◦ normal – Standard zone with 1 turn movement cost (default)
-#     ◦ blocked – Inaccessible zone. Drones must not enter or pass through this zone.
+#     ◦ blocked – Inaccessible zone. Drones must not enter
+#       or pass through this zone.
 #     Any path using it is invalid.
-#     ◦ restricted – A sensitive or dangerous zone. Movement to this zone costs 2
-#     turns.
-#     ◦ priority – A preferred zone. Movement to this zone costs 1 turn but should
-#     be prioritized in pathfinding
+#     ◦ restricted – A sensitive or dangerous zone.
+#       Movement to this zone costs 2 turns.
+#     ◦ priority – A preferred zone. Movement to this zone costs 1 turn
+#       but should be prioritized in pathfinding
 
 # 1/ Prend les drones par ordre de numero
-# 2/ Trouve le chemin le plus court en fonction de l'emplacement de tous les precedents dans le temps
-# 3/ Mise du journal de positionnement de tous les drones impliques (celui en court et les precedents)
+# 2/ Trouve le chemin le plus court en fonction de l'emplacement
+#    de tous les precedents dans le temps
+# 3/ Mise du journal de positionnement de tous les drones impliques
+#    (celui en court et les precedents)
 #    dans le temps (parsing.Drone.positioning_log)
-# 4/ Mise a jour du journal de deplacement en fonction de chaque tour (liste de liste de drones): self.travel_log
+# 4/ Mise a jour du journal de deplacement en fonction de chaque tour
+#    (liste de liste de drones): self.travel_log
 # Le deplacement de tous les drones ne sera affiche qu'une fois boucle
 
 # self.drone_list: list[MapParsing.Drone] = []
