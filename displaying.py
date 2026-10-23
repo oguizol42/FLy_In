@@ -5,6 +5,8 @@ import parsing
 
 class Displaying:
     def __init__(self) -> None:
+        super().__init__()
+
         self.hub_size: int = 50
 
         self.map_start_x: int = 0
@@ -160,15 +162,18 @@ class Displaying:
         self, hub: parsing.MapParsing.Hub.HubData
     ) -> tuple[int, int]:
         """Calcul coordonnees in graphical map"""
+        posX: int
+        posY: int
+
         # Calcul Hub Coord
         posX = hub.coordX + self.map_offsetX
         posX = posX * (self.hub_size + self.space_hubs_X)
-        posX = posX + self.hub_size / 2  # pile au bord
+        posX = int(posX + self.hub_size / 2)  # pile au bord
         posX += self.space_board_X
 
         posY = hub.coordY + self.map_offsetY
         posY = posY * (self.hub_size + self.space_hubs_Y)
-        posY = posY + self.hub_size / 2  # pile au bord
+        posY = int(posY + self.hub_size / 2)  # pile au bord
         posY += self.space_board_Y
 
         return posX, posY
@@ -253,11 +258,13 @@ class Displaying:
 
                 # Hub Name
                 police = pygame.font.Font(None, 20)
-                text = police.render(hub.datas.name, True, pygame.Color("black"))
+                text = police.render(
+                    hub.datas.name, True, pygame.Color("black")
+                )
 
                 text_zone = text.get_rect()
 
-                text_zone.center = (posX, posY - (self.hub_size / 2) - 5)
+                text_zone.center = (posX, posY - int((self.hub_size / 2)) - 5)
 
                 window.blit(text, text_zone)
 

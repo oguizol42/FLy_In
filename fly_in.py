@@ -1,46 +1,16 @@
 import parsing
 import displaying
 import drones_manager
-from typing import TextIO
-
-# from pydantic import BaseModel, Field, ValidationError, model_validator
-# from typing import Optional
-# from enum import Enum
-
-
-# class Drone_Map(parsing.MapParsing):
-#     def __init__(self, file_name: str) -> None:
-#         self.file_name = file_name
-#         self.map_text: str = None
-
-#     def loading_map(self) -> None:
-#         """Loading Map from File"""
-#         try:
-#             fd: int = open(self.file_name, "r")
-#             self.map_text: str = fd.read()
-#             fd.close()
-#         except FileNotFoundError as e:
-#             print(e)
-#         except IsADirectoryError as e:
-#             print(e)
-
-#     def display_map(self) -> None:
-#         """Display Graphical Map from File"""
-#         try:
-#             if self.map_text is None:
-#                 raise AttributeError("No Map Loaded")
-#             print(self.map_text)
-#         except AttributeError as e:
-#             print(e)
+from typing import TextIO, Optional
 
 
 class Drone_Map(
     parsing.MapParsing, drones_manager.DronesManager, displaying.Displaying
 ):
     def __init__(self, file_name: str) -> None:
-        self.file_name = file_name
-        self.map_text: parsing.Optional[list[str]] = None
         super().__init__()
+        self.file_name = file_name
+        self.map_text: Optional[str] = None
 
     def loading_map(self) -> None:
         """Loading Map from File"""

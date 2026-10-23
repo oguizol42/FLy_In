@@ -4,7 +4,11 @@ from enum import Enum
 
 
 class MapParsing:
+    map_text: Optional[str] = None
+    drone_list: list["MapParsing.Drone"] = []
+
     def __init__(self) -> None:
+        super().__init__()
         # For check
         self.nb_connections: int = 0
         self.map_clean: list[str] = []
@@ -17,17 +21,16 @@ class MapParsing:
         # Definitive Datas
         self.hub_list: list[MapParsing.Hub] = []
         self.connection_list: list[MapParsing.Connection] = []
-        self.drone_list: list[MapParsing.Drone] = []
         self.nb_drones: int = 0
-        super().__init__()
 
     def clean_map(self) -> None:
         """Clean Map Datas"""
         split_tempo: list[str]
+        map_list: list[str]
 
-        if self.map_text is None or self.map_text == []:
+        if self.map_text is None:
             raise ValueError("No datas read")
-        map_list: list[str] = self.map_text.split("\n")
+        map_list = self.map_text.split("\n")
         for one_line in map_list:
             split_tempo = one_line.split("#")
             if len(split_tempo[0]) > 1:
@@ -411,6 +414,9 @@ class MapParsing:
         new_drone: MapParsing.Drone
 
         hub_start, _, _ = self.find_hub_by_type("start_hub")
+        if hub_start is None:
+            raise ValueError("hub_start is not define in this map")
+
         for n in range(self.nb_drones):
             new_drone = self.Drone(
                 id=n + 1, hub_pos=hub_start, positioning_log=[hub_start]
