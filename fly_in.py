@@ -19,11 +19,6 @@ class Drone_Map(
         fd.close()
 
 
-# Map File Loading
-# Map Parsing
-# Map Display
-
-
 class Drones_Fly:
     def __init__(self, qty_drones: int) -> None:
         pass
@@ -49,31 +44,31 @@ class Manage_flies:
 
 
 def main() -> None:
-    # try:
-    #     # map: Drone_Map = Drone_Map("maps/easy/01_linear_path.txt")
-    #     map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
+    try:
+        # map: Drone_Map = Drone_Map("maps/easy/01_linear_path.txt")
+        map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
 
-    #     map.loading_map()
-    #     map.map_parsing()
-    #     # map.display_map_datas()
-    #     map.display_main_datas()
-    #     map.drones_manager()
-    #     map.calcul_map_size()
-    #     map.displaying_map()
-    # except ValueError as e:
-    #     print(e)
+        map.loading_map()
+        map.map_parsing()
+        # map.display_map_datas()
+        map.display_main_datas()
+        map.drones_manager()
+        map.calcul_map_size()
+        map.displaying_map()
+    except ValueError as e:
+        print(e)
 
-    map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
+    # map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
 
-    map.loading_map()
-    map.map_parsing()
+    # map.loading_map()
+    # map.map_parsing()
 
-    # map.display_map_datas()
+    # # map.display_map_datas()
 
-    map.display_main_datas()
-    map.drones_manager()
-    map.calcul_map_size()
-    map.displaying_map()
+    # map.display_main_datas()
+    # map.drones_manager()
+    # map.calcul_map_size()
+    # map.displaying_map()
 
 
 if __name__ == "__main__":

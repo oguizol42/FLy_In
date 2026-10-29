@@ -35,7 +35,7 @@ class MapParsing:
             split_tempo = one_line.split("#")
             if len(split_tempo[0]) > 1:
                 self.map_clean.append(split_tempo[0])
-        if len(self.map_clean) < 6:
+        if len(self.map_clean) < 4:
             self.map_clean = []
             raise ValueError("Not enough values in the map definition")
 
@@ -453,8 +453,8 @@ class MapParsing:
                         "but it should have been 'nb_drones'"
                     )
                 split_tempo = self.map_clean[i].split(":")
-                # if not len(tuple_tempo) == 2:
-                #     raise ValueError(f"Definition of {type} is not valid")
+                if not len(split_tempo) == 2:
+                    raise ValueError(f"Definition of {type} is not valid")
                 self.nb_drones = int(split_tempo[1])
                 if self.nb_drones < 1:
                     raise ValueError(

@@ -10,6 +10,36 @@ class DronesManager:
     def dijkstra_algorythm(self) -> None:
         pass
 
+    # Prend chaque Drone dans l'ordre et cherche le chemin le plus cours en fonction du positionnement des autre drones et des zones
+
+    # Chaque hub contient:
+    #   - la liste des hub connectes par ordre de priorite
+    #   - la liste des drones present a l'instant t (le tour en cours)
+    #
+    # Chaque connection contient la liste des drones presents a l'instant t (le tour en cours)
+    #
+    # Chaque dorne contient:
+    #   - parcours definie precedement du depart a l'arrivee, ou None si aucun effectue
+    #   - parcours tempo permettant les retours en arrieres
+    #     (generalement une copie du parcours en cours juste avant de faire un retour en arriere d'un hub)
+    #   - etat du parcours en cours (tous les hub traverse et l'emplacement en cours)
+    #
+    # Deplacement des Drones:
+    # While sur tous les drones:
+    #   Examine le type de hub connecte a celui en cours dans l'ordre
+    #   (cette boucle est effectue jusqu'a ce que tous les parcours possible aient ete testes):
+    #       => si toutes les destinations de ce hub testees:
+    #           => si hub_start, la boucle principale est terminee (tous les parcours ont ete testes):
+    #               => si aucun parcours trouve, les tests sont termine, un message d'erreur apparait
+    #               => sinon: on passe aux tets sur le drone suivant
+    #           => sinon: revient un hub en arriere et continue les tests
+    #       => Si hub_end:
+    #           - s'y deplace
+    #           - compare le nombre de tours effectue avec celui du parcours precedent:
+    #               => si moins de tours ou aucun parcours enregistre precedement, ce parcours est enregistre a la place de l'autre
+    #       => Si deja visite ou blocked, passe au test sur le hub suivant
+    #       => Si deja occupe, passe les tours jusqu'a ce qu'il soit libre et s'y deplace
+
     def drones_manager(self) -> None:
         """Manage Drones Movements"""
         drone: parsing.MapParsing.Drone
