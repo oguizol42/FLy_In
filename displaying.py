@@ -13,9 +13,16 @@ class Displaying:
     drone_list: list[parsing.MapParsing.Drone]
     nb_drones: int
 
-    def find_hub_by_type2(
-        self, type: str
-    ) -> Optional[parsing.MapParsing.Hub]: ...
+    # def find_hub_by_type2(
+    #     self, type: str
+    # ) -> Optional[parsing.MapParsing.Hub]: ...
+
+    def find_hub_by_type(self, type: str) -> tuple[
+        Optional["parsing.MapParsing.Hub.HubData"],
+        Optional["parsing.MapParsing.Hub.HubMeta"],
+        Optional["parsing.MapParsing.Hub"],
+    ]:
+        raise NotImplementedError
 
     def __init__(self) -> None:
         super().__init__()
@@ -67,6 +74,9 @@ class Displaying:
         # hub_datas: parsing.MapParsing.Hub.HubData
         # hub_metas: parsing.MapParsing.Hub.HubMeta
         connection: parsing.MapParsing.Connection
+        hubs_neighbour: tuple[
+            "parsing.MapParsing.Hub", "parsing.MapParsing.Connection"
+        ]
 
         if self.map_text is None:
             raise ValueError("No Map Loaded")
@@ -84,7 +94,7 @@ class Displaying:
         print()
         print(f"NOMBRE DE DRONES: {self.nb_drones}")
 
-        hub = self.find_hub_by_type2("start_hub")
+        _, _, hub = self.find_hub_by_type("start_hub")
         if hub is None:
             raise ValueError("start_hub is not defined in this map")
 
@@ -95,8 +105,20 @@ class Displaying:
             f"  Color: {hub.metas.color}\n"
             f"  Max Drones: {hub.metas.max_drones}"
         )
+        print("Hub neighbours:")
+        for hubs_neighbour in hub.neighboring_hubs:
+            print(
+                f"Connection: C{hubs_neighbour[1].id}: ",
+                f"{hubs_neighbour[0].datas.name}",
+            )
+        print("Hub neighbours forbiden:")
+        for hubs_neighbour in hub.neighboring_hubs_forbiden:
+            print(
+                f"Connection forbiden: C{hubs_neighbour[1].id}: ",
+                f"{hubs_neighbour[0].datas.name}",
+            )
 
-        hub = self.find_hub_by_type2("end_hub")
+        _, _, hub = self.find_hub_by_type("end_hub")
         if hub is None:
             raise ValueError("end_hub is not defined in this map")
 
@@ -107,6 +129,18 @@ class Displaying:
             f"  Color: {hub.metas.color}\n"
             f"  Max Drones: {hub.metas.max_drones}"
         )
+        print("Hub neighbours:")
+        for hubs_neighbour in hub.neighboring_hubs:
+            print(
+                f"Connection: C{hubs_neighbour[1].id}: ",
+                f"{hubs_neighbour[0].datas.name}",
+            )
+        print("Hub neighbours forbiden:")
+        for hubs_neighbour in hub.neighboring_hubs_forbiden:
+            print(
+                f"Connection forbiden: C{hubs_neighbour[1].id}: ",
+                f"{hubs_neighbour[0].datas.name}",
+            )
 
         print("\nHUBS LIST:")
         for hub in self.hub_list:
@@ -116,8 +150,20 @@ class Displaying:
                 f"{hub.datas.name} {hub.datas.coordX} {hub.datas.coordY}, "
                 f"color: {hub.metas.color}, "
                 f"zone type: {hub.metas.zone_type}, "
-                f"max drones: {hub.metas.max_drones}"
+                f"max drones: {hub.metas.max_drones}, "
             )
+            for hubs_neighbour in hub.neighboring_hubs:
+                print(
+                    f"Connection: C{hubs_neighbour[1].id}: ",
+                    f"{hubs_neighbour[0].datas.name}",
+                )
+            print("Hub neighbours forbiden:")
+            for hubs_neighbour in hub.neighboring_hubs_forbiden:
+                print(
+                    f"Connection forbiden: C{hubs_neighbour[1].id}: ",
+                    f"{hubs_neighbour[0].datas.name}",
+                )
+            print("\n")
 
         print("\nCONNECTIONS LIST:\n")
         for connection in self.connection_list:

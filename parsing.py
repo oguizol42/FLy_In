@@ -54,6 +54,9 @@ class MapParsing:
             self.neighboring_hubs: list[
                 tuple["MapParsing.Hub", "MapParsing.Connection"]
             ] = []
+            self.neighboring_hubs_forbiden: list[
+                tuple["MapParsing.Hub", "MapParsing.Connection"]
+            ] = []
 
         class HubMetaZone(str, Enum):
             normal = "normal"
@@ -368,19 +371,19 @@ class MapParsing:
                 return hub.datas, hub.metas, hub
         return (None, None, None)
 
-    def find_hub_by_name2(self, name: str) -> Optional["MapParsing.Hub"]:
-        """Return hub with name"""
-        for hub in self.hub_list:
-            if hub.datas.name == name:
-                return hub
-        return None
+    # def find_hub_by_name2(self, name: str) -> Optional["MapParsing.Hub"]:
+    #     """Return hub with name"""
+    #     for hub in self.hub_list:
+    #         if hub.datas.name == name:
+    #             return hub
+    #     return None
 
-    def find_hub_by_type2(self, type: str) -> Optional["MapParsing.Hub"]:
-        """Return hub with name"""
-        for hub in self.hub_list:
-            if hub.datas.type == type:
-                return hub
-        return None
+    # def find_hub_by_type2(self, type: str) -> Optional["MapParsing.Hub"]:
+    #     """Return hub with name"""
+    #     for hub in self.hub_list:
+    #         if hub.datas.type == type:
+    #             return hub
+    #     return None
 
     def create_connection_list(self) -> None:
         """Create list of connection by hub"""
@@ -427,13 +430,29 @@ class MapParsing:
     def init_neighboring_hubs(self) -> None:
         """Init List of Neighbors"""
         connection: MapParsing.Connection
+        hub_d: Optional[MapParsing.Hub]
+        hub_f: Optional[MapParsing.Hub]
 
         # 1/ parcours la liste de connection et place chaque connection
         #   et hub correspondand dans neighboring_hubs
+
+        # Find neighboring_hubs in every hubs
         for connection in self.connection_list:
-            pass
-        # 2/ parcours tous les hubs et trie neighboring_hubs,
+            _, _, hub_d = self.find_hub_by_name(connection.hub1.name)
+            _, _, hub_f = self.find_hub_by_name(connection.hub2.name)
+            if isinstance(hub_d, MapParsing.Hub) and isinstance(
+                hub_f, MapParsing.Hub
+            ):
+                hub_d.neighboring_hubs.append((hub_f, connection))
+                hub_f.neighboring_hubs.append((hub_d, connection))
+
+        # 2/ parcours tous les hubs et trie neighboring_hubs:
         #   par priorite de zone a parcourir
+        #   vide la liste des voisins de end_hub
+        #   dans tous les hub enleve start_hub
+        #   1-end_hub 2-hubs priority 3-hubs normal
+        #   4-hubs restricted 5-hubs blocked
+        # Sort neighboring_hubs of every hubs in order of priority
         pass
 
     def map_parsing(self) -> None:
