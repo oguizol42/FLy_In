@@ -68,6 +68,21 @@ class Displaying:
         print(f"\nCONNECTIONS LIST PAR HUB:\n{self.connection_list}")
         print(f"\nDRONES LIST:\n{self.drone_list}")
 
+    def display_drones_in_hub(
+        self, drones_in_hub: list[list[parsing.MapParsing.Drone]]
+    ) -> None:
+        """Display Drones in Hub by Turn"""
+        drone_list: list[parsing.MapParsing.Drone] = []
+        drone: parsing.MapParsing.Drone
+        n: int
+
+        n = 0
+        for drone_list in drones_in_hub:
+            print(f"Drones in hub, tour {n}:")
+            for drone in drone_list:
+                print(f"    D{drone.id}")
+            n += 1
+
     def display_main_datas(self) -> None:
         """Display Datas Informations of Map"""
         hub: Optional[parsing.MapParsing.Hub]
@@ -105,6 +120,7 @@ class Displaying:
             f"  Color: {hub.metas.color}\n"
             f"  Max Drones: {hub.metas.max_drones}"
         )
+        self.display_drones_in_hub(hub.datas.drones_in_hub)
         print("Hub neighbours:")
         for hubs_neighbour in hub.neighboring_hubs:
             print(
@@ -129,6 +145,7 @@ class Displaying:
             f"  Color: {hub.metas.color}\n"
             f"  Max Drones: {hub.metas.max_drones}"
         )
+        self.display_drones_in_hub(hub.datas.drones_in_hub)
         print("Hub neighbours:")
         for hubs_neighbour in hub.neighboring_hubs:
             print(
@@ -152,6 +169,7 @@ class Displaying:
                 f"zone type: {hub.metas.zone_type}, "
                 f"max drones: {hub.metas.max_drones}, "
             )
+            self.display_drones_in_hub(hub.datas.drones_in_hub)
             for hubs_neighbour in hub.neighboring_hubs:
                 print(
                     f"Connection: C{hubs_neighbour[1].id}: ",
@@ -345,6 +363,18 @@ class Displaying:
 
     def displaying_simulation(self) -> None:
         """Display simulation step by step"""
+        n: int
+        drone: parsing.MapParsing.Drone
+
+        for n in range(1, self.nb_turn):
+            for drone in self.drone_list:
+                print(f"D{drone.id}-{drone.travel_plan[n].name} ", end="")
+            print("")
+
+        # Gerer le fait qu'un drone ne se deplace pas durant un tour:
+        #       soit parce qu'il est bloque
+        #       soit parce qu'il a fini
+
         # • The simulation must output the step-by-step movement of drones
         #   from the start to the end zone.
         # • Each simulation turn is represented by a line.
@@ -365,7 +395,6 @@ class Displaying:
         #     D1-roof1 D2-corridorA
         #     D1-roof2 D2-tunnelB
         #     D1-goal D2-goal
-        pass
 
 
 # Calcul de la taille de la fenetre de la map

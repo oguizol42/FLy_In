@@ -1,14 +1,142 @@
 import parsing
+from typing import Optional
 
 
 class DronesManager:
+    hub_list: list[parsing.MapParsing.Hub]
+
     def __init__(self) -> None:
         super().__init__()
         self.travel_log: list[list[parsing.MapParsing.Drone]] = []
         self.drone_list: list[parsing.MapParsing.Drone] = []
 
-    def dijkstra_algorythm(self) -> None:
+    def sort_hubs_neighbours(self) -> None:
+        """Sort neighboring_hubs of every hubs in order of priority"""
+        hub: parsing.MapParsing.Hub
+        hub_neighbour: parsing.MapParsing.Hub
+        connection: parsing.MapParsing.Connection
+        hub_connection: tuple[
+            parsing.MapParsing.Hub, parsing.MapParsing.Connection
+        ]
+        hubs_priority: list[
+            tuple[parsing.MapParsing.Hub, parsing.MapParsing.Connection]
+        ]
+        hubs_normal: list[
+            tuple[parsing.MapParsing.Hub, parsing.MapParsing.Connection]
+        ]
+        hubs_restricted: list[
+            tuple[parsing.MapParsing.Hub, parsing.MapParsing.Connection]
+        ]
+        hubs_blocked: list[
+            tuple[parsing.MapParsing.Hub, parsing.MapParsing.Connection]
+        ]
+
+        for hub in self.hub_list:
+            hubs_priority = []
+            hubs_normal = []
+            hubs_restricted = []
+            hubs_blocked = []
+            if hub.neighboring_hubs is not None and hub.neighboring_hubs != []:
+                for hub_neighbour, connection in hub.neighboring_hubs:
+                    if (
+                        hub_neighbour.metas.zone_type == "blocked"
+                        or hub_neighbour.datas.type == "start_hub"
+                    ):
+                        hubs_blocked.append((hub_neighbour, connection))
+
+                    elif hub_neighbour.datas.type == "end_hub":
+                        hubs_priority.insert(0, (hub_neighbour, connection))
+
+                    elif hub_neighbour.metas.zone_type == "priority":
+                        hubs_priority.append((hub_neighbour, connection))
+
+                    elif hub_neighbour.metas.zone_type == "normal":
+                        hubs_normal.append((hub_neighbour, connection))
+
+                    elif hub_neighbour.metas.zone_type == "restricted":
+                        hubs_restricted.append((hub_neighbour, connection))
+
+                    hub.neighboring_hubs = []
+                    hub.neighboring_hubs_forbiden = []
+
+                    if hub.metas.zone_type != "end_hub":
+                        for hub_connection in hubs_priority:
+                            hub.neighboring_hubs.append(hub_connection)
+                        for hub_connection in hubs_normal:
+                            hub.neighboring_hubs.append(hub_connection)
+                        for hub_connection in hubs_restricted:
+                            hub.neighboring_hubs.append(hub_connection)
+                        hub.neighboring_hubs_forbiden = hubs_blocked
+
+        # 2/ parcours tous les hubs et trie neighboring_hubs:
+        #   par priorite de zone a parcourir
+        #   vide la liste des voisins de end_hub
+        #   dans tous les hub enleve start_hub
+        #   1-end_hub 2-hubs priority 3-hubs normal
+        #   4-hubs restricted 5-hubs blocked
+        # Sort neighboring_hubs of every hubs in order of priority
+
+    def next_hub(self) -> None:
+        """Move Drone to Next Hub"""
         pass
+
+    def dijkstra_algorythm(self) -> None:
+        drone: parsing.MapParsing.Drone
+        hub_datas: parsing.MapParsing.Hub.HubData
+        hub: parsing.MapParsing.Hub
+        tempo_travel_plan: list[
+            Optional[
+                parsing.MapParsing.Hub.HubData | parsing.MapParsing.Connection
+            ]
+        ]
+        turn_num: int
+        # Boucle sur tous les Drones un par un:
+        #   va au hub voisin suivant par ordre de priorite:
+        #       => si deja occupe, boucle jusqu'a ce qu'il soit libre
+        #       => si deja emprunte, test le suivant
+        #       => si suivant end_hub, compare le nombre de tours effectues,
+        #           le cas echeant,
+        #           avec le nombre de tours du parcours precedent,
+        #           et garde celui qui a le moins de tours,
+        #           puis revient un hub en arriere et poursuit la boucle hub
+        #       => si tous testes
+        #           => si start_hub et pas de chemins trouves: message d'erreur
+        #           => si start_hub et chemin trouve, passe au drone suivant
+        #           => sinon: revient au hub precedent
+        #                     et continue la boucle hub
+
+        # chaque hub et chaque connection contient le numero des Drones
+        #   presents par tour (None lorsqu'aucun drone present)
+        # Chaque drone contient ses deplacements par tour
+        #   (none lorsque pqs de deplacement)
+
+        if self.drone_list is None or self.drone_list == []:
+            raise ValueError("There is no drone in the map")
+
+        print("ALGORYTHM:\n")  # TEMPO
+
+        # Boucle sur tous les Drones un par un:
+        for drone in self.drone_list:
+            tempo_travel_plan = []
+            print(f"Traitement drone D{drone.id}")  # TEMPO
+            tempo_travel_plan.append(drone.drone_pos)
+
+            # TEMPO
+            while drone.drone_pos.type != "end_hub":
+                _, _, hub = self.find_hub_by_name(drone.drone_pos.name)
+                drone.drone_pos = hub.neighboring_hubs[0][0].datas
+                tempo_travel_plan.append(drone.drone_pos)
+
+            drone.travel_plan = tempo_travel_plan
+            if (len(drone.travel_plan)) > self.nb_turn:
+                self.nb_turn = len(drone.travel_plan)
+
+            # TEMPO
+            print(" Parcours:")
+            turn_num = 0
+            for hub_datas in drone.travel_plan:
+                print(f"        turn: {turn_num} => {hub_datas.name}")
+                turn_num += 1
 
     # Prend chaque Drone dans l'ordre et cherche le chemin le plus cours
     #   en fonction du positionnement des autre drones et des zones
@@ -54,16 +182,9 @@ class DronesManager:
 
     def drones_manager(self) -> None:
         """Manage Drones Movements"""
-        drone: parsing.MapParsing.Drone
 
-        if self.drone_list is None or self.drone_list == []:
-            raise ValueError("There is no drone in the map")
-
-        print("ALGORYTHM:\n")  # TEMPO
-        for drone in self.drone_list:
-            print(f"Traitement drone D{drone.id}")  # TEMPO
-
-# 1/ Dans chaque Hub, trier les hubs connectes par ordre de priorite
+        self.sort_hubs_neighbours()
+        self.dijkstra_algorythm()
 
 
 # Zone types:

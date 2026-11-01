@@ -1,7 +1,31 @@
+class MapParsing:
+    map_text: Optional[str] = None
+    drone_list: list["MapParsing.Drone"] = []
+
+    def __init__(self) -> None:
+        super().__init__()
+        # For check
+        self.nb_connections: int = 0
+        self.map_clean: list[str] = []
+        self.types_used: list[str] = []
+        self.name_used: list[str] = []
+        self.coord_list: list[tuple[int, int]] = []
+        self.connection_check_list: list[list[str]] = []
+        self.connection_name_list: list[tuple[list[str], int]] = []
+
+        # Definitive Datas
+        self.hub_list: list[MapParsing.Hub] = []
+        self.connection_list: list[MapParsing.Connection] = []
+        self.nb_drones: int = 0
+        self.nb_turn: int = 0
+
 class Drone(BaseModel):
-	id: int
-	hub_pos: "MapParsing.HubData | MapParsing.Connection"
-	positioning_log: list [int, "MapParsing.HubData | MapParsing.Connection"]
+        id: int
+        drone_pos: "MapParsing.Hub.HubData | MapParsing.Connection"
+        
+        travel_plan: list[
+            Optional["MapParsing.Hub.HubData | MapParsing.Connection"]
+        ] = Field(default_factory=list)
 
 class Connection(BaseModel):
 	id: int
@@ -19,6 +43,22 @@ class Hub:
             self.neighboring_hubs: list[
                 tuple["MapParsing.Hub", "MapParsing.Connection"]
             ] = []
+            self.neighboring_hubs_forbiden: list[
+                tuple["MapParsing.Hub", "MapParsing.Connection"]
+            ] = []
+            
+class DatasType(str, Enum):
+        nb_drones = "nb_drones"
+        start_hub = "start_hub"
+        end_hub = "end_hub"
+        hub = "hub"
+        connection = "connection"
+        
+class HubMetaZone(str, Enum):
+            normal = "normal"
+            blocked = "blocked"
+            restricted = "restricted"
+            priority = "priority"
 
 class HubData(BaseModel):
 	name: str = Field(min_length=1)
@@ -56,8 +96,9 @@ if self.zone_type not in [
     )
 return self
     
+self.hub_list: list[MapParsing.Hub] = []
 self.connection_list: list[MapParsing.Connection] = []
-self.hub_list: list[tuple[MapParsing.HubData, MapParsing.HubMeta]] = []
+self.nb_drones: int = 0
 self.drone_list: list[MapParsing.Drone] = []
 
 self.nb_drones: int = 0

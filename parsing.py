@@ -22,6 +22,7 @@ class MapParsing:
         self.hub_list: list[MapParsing.Hub] = []
         self.connection_list: list[MapParsing.Connection] = []
         self.nb_drones: int = 0
+        self.nb_turn: int = 0
 
     def clean_map(self) -> None:
         """Clean Map Datas"""
@@ -51,6 +52,7 @@ class MapParsing:
             self.map: MapParsing = self_map
             self.datas: MapParsing.Hub.HubData
             self.metas: MapParsing.Hub.HubMeta
+
             self.neighboring_hubs: list[
                 tuple["MapParsing.Hub", "MapParsing.Connection"]
             ] = []
@@ -69,7 +71,7 @@ class MapParsing:
             coordX: int
             coordY: int
             type: str
-            drones_in_hub: list["MapParsing.Drone"] = Field(
+            drones_in_hub: list[list["MapParsing.Drone"]] = Field(
                 default_factory=list
             )
             nb_drones: int = Field(default=0, ge=0)
@@ -196,8 +198,11 @@ class MapParsing:
 
     class Drone(BaseModel):
         id: int
-        hub_pos: "MapParsing.Hub.HubData | MapParsing.Connection"
-        positioning_log: list["MapParsing.Hub.HubData | MapParsing.Connection"]
+        drone_pos: "MapParsing.Hub.HubData | MapParsing.Connection"
+
+        travel_plan: list[
+            Optional["MapParsing.Hub.HubData | MapParsing.Connection"]
+        ] = Field(default_factory=list)
 
     class Connection(BaseModel):
         id: int
@@ -371,20 +376,6 @@ class MapParsing:
                 return hub.datas, hub.metas, hub
         return (None, None, None)
 
-    # def find_hub_by_name2(self, name: str) -> Optional["MapParsing.Hub"]:
-    #     """Return hub with name"""
-    #     for hub in self.hub_list:
-    #         if hub.datas.name == name:
-    #             return hub
-    #     return None
-
-    # def find_hub_by_type2(self, type: str) -> Optional["MapParsing.Hub"]:
-    #     """Return hub with name"""
-    #     for hub in self.hub_list:
-    #         if hub.datas.type == type:
-    #             return hub
-    #     return None
-
     def create_connection_list(self) -> None:
         """Create list of connection by hub"""
         huba: Optional[MapParsing.Hub.HubData]
@@ -415,17 +406,17 @@ class MapParsing:
         """Create list of drones"""
         hub_start: Optional[MapParsing.Hub.HubData]
         new_drone: MapParsing.Drone
+        drones_list: list[MapParsing.Drone] = []
 
         hub_start, _, _ = self.find_hub_by_type("start_hub")
         if hub_start is None:
             raise ValueError("hub_start is not define in this map")
 
         for n in range(self.nb_drones):
-            new_drone = self.Drone(
-                id=n + 1, hub_pos=hub_start, positioning_log=[hub_start]
-            )
+            new_drone = self.Drone(id=n + 1, drone_pos=hub_start)
             self.drone_list.append(new_drone)
-            hub_start.drones_in_hub.append(new_drone)
+            drones_list.append(new_drone)
+        hub_start.drones_in_hub.append(drones_list)
 
     def init_neighboring_hubs(self) -> None:
         """Init List of Neighbors"""
@@ -445,15 +436,6 @@ class MapParsing:
             ):
                 hub_d.neighboring_hubs.append((hub_f, connection))
                 hub_f.neighboring_hubs.append((hub_d, connection))
-
-        # 2/ parcours tous les hubs et trie neighboring_hubs:
-        #   par priorite de zone a parcourir
-        #   vide la liste des voisins de end_hub
-        #   dans tous les hub enleve start_hub
-        #   1-end_hub 2-hubs priority 3-hubs normal
-        #   4-hubs restricted 5-hubs blocked
-        # Sort neighboring_hubs of every hubs in order of priority
-        pass
 
     def map_parsing(self) -> None:
         """Parsing of All the Map"""
