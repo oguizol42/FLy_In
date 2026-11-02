@@ -60,6 +60,10 @@ class MapParsing:
                 tuple["MapParsing.Hub", "MapParsing.Connection"]
             ] = []
 
+            self.drones_by_time: list[Optional[list[MapParsing.Drone]]] = [
+                None
+            ]
+
         class HubMetaZone(str, Enum):
             normal = "normal"
             blocked = "blocked"
@@ -209,8 +213,11 @@ class MapParsing:
         hub1: "MapParsing.Hub.HubData"
         hub2: "MapParsing.Hub.HubData"
         nb_drones_in: int = Field(default=0, ge=0)
-        drones_in_connect: list["MapParsing.Drone"] = Field(
-            default_factory=list
+        # drones_in_connect: list[Optional[list["MapParsing.Drone"]]] = Field(
+        #     default_factory=list
+        # )
+        drones_in_connect: list[Optional[list["MapParsing.Drone"]]] = Field(
+            default_factory=lambda: [None]
         )
         max_drones_allow: int = Field(default=1, ge=0)
 
@@ -404,19 +411,20 @@ class MapParsing:
 
     def create_drone_list(self) -> None:
         """Create list of drones"""
-        hub_start: Optional[MapParsing.Hub.HubData]
+        hub_start: Optional[MapParsing.Hub]
         new_drone: MapParsing.Drone
         drones_list: list[MapParsing.Drone] = []
 
-        hub_start, _, _ = self.find_hub_by_type("start_hub")
+        _, _, hub_start = self.find_hub_by_type("start_hub")
         if hub_start is None:
             raise ValueError("hub_start is not define in this map")
 
         for n in range(self.nb_drones):
-            new_drone = self.Drone(id=n + 1, drone_pos=hub_start)
+            new_drone = self.Drone(id=n + 1, drone_pos=hub_start.datas)
             self.drone_list.append(new_drone)
             drones_list.append(new_drone)
-        hub_start.drones_in_hub.append(drones_list)
+        hub_start.datas.drones_in_hub = drones_list
+        hub_start.drones_by_time[0] = drones_list
 
     def init_neighboring_hubs(self) -> None:
         """Init List of Neighbors"""

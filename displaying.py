@@ -368,12 +368,14 @@ class Displaying:
 
         for n in range(1, self.nb_turn):
             for drone in self.drone_list:
-                print(f"D{drone.id}-{drone.travel_plan[n].name} ", end="")
+                if (
+                    drone.travel_plan is not None
+                    and drone.travel_plan != []
+                    and len(drone.travel_plan) >= (n + 1)
+                    and drone.travel_plan[n] is not None
+                ):
+                    print(f"D{drone.id}-{drone.travel_plan[n].name} ", end="")
             print("")
-
-        # Gerer le fait qu'un drone ne se deplace pas durant un tour:
-        #       soit parce qu'il est bloque
-        #       soit parce qu'il a fini
 
         # • The simulation must output the step-by-step movement of drones
         #   from the start to the end zone.

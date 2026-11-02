@@ -5,6 +5,13 @@ from typing import Optional
 class DronesManager:
     hub_list: list[parsing.MapParsing.Hub]
 
+    def find_hub_by_type(self, type: str) -> tuple[
+        Optional["parsing.MapParsing.Hub.HubData"],
+        Optional["parsing.MapParsing.Hub.HubMeta"],
+        Optional["parsing.MapParsing.Hub"],
+    ]:
+        raise NotImplementedError
+
     def __init__(self) -> None:
         super().__init__()
         self.travel_log: list[list[parsing.MapParsing.Drone]] = []
@@ -76,67 +83,129 @@ class DronesManager:
         #   4-hubs restricted 5-hubs blocked
         # Sort neighboring_hubs of every hubs in order of priority
 
-    def next_hub(self) -> None:
-        """Move Drone to Next Hub"""
-        pass
+    # def recov_next_hub(
+    #     self,
+    #     drone_pos: parsing.MapParsing.Hub.HubData,
+    #     hub_visited: list[parsing.MapParsing.Hub.HubData],
+    # ) -> Optional[parsing.MapParsing.Hub]:
+    #     """Recovery Drone to Next Hub"""
+    #     hub: parsing.MapParsing.Hub
+    #     for hub in drone_pos.neighboring_hubs:
+    #         if hub not in hub_visited:
+    #             return hub
+    #     return None
 
     def dijkstra_algorythm(self) -> None:
         drone: parsing.MapParsing.Drone
-        hub_datas: parsing.MapParsing.Hub.HubData
-        hub: parsing.MapParsing.Hub
-        tempo_travel_plan: list[
+        travel_plan_test: list[
             Optional[
                 parsing.MapParsing.Hub.HubData | parsing.MapParsing.Connection
             ]
         ]
-        turn_num: int
-        # Boucle sur tous les Drones un par un:
-        #   va au hub voisin suivant par ordre de priorite:
-        #       => si deja occupe, boucle jusqu'a ce qu'il soit libre
-        #       => si deja emprunte, test le suivant
-        #       => si suivant end_hub, compare le nombre de tours effectues,
-        #           le cas echeant,
-        #           avec le nombre de tours du parcours precedent,
-        #           et garde celui qui a le moins de tours,
-        #           puis revient un hub en arriere et poursuit la boucle hub
-        #       => si tous testes
-        #           => si start_hub et pas de chemins trouves: message d'erreur
-        #           => si start_hub et chemin trouve, passe au drone suivant
-        #           => sinon: revient au hub precedent
-        #                     et continue la boucle hub
 
-        # chaque hub et chaque connection contient le numero des Drones
-        #   presents par tour (None lorsqu'aucun drone present)
-        # Chaque drone contient ses deplacements par tour
-        #   (none lorsque pqs de deplacement)
+        desti_hub: parsing.MapParsing.Hub
+        connect: parsing.MapParsing.Connection
 
-        if self.drone_list is None or self.drone_list == []:
-            raise ValueError("There is no drone in the map")
+        start_hub: parsing.MapParsing.Hub = self.find_hub_by_type("start_hub")
+        _, _, start_hub = self.find_hub_by_type("start_hub")
+        desti_start_hub: parsing.MapParsing.Hub
+        conn_start: parsing.MapParsing.Connection
 
-        print("ALGORYTHM:\n")  # TEMPO
-
-        # Boucle sur tous les Drones un par un:
+        # - Boucle sur chaque drones de la map un par un dans variable drone
         for drone in self.drone_list:
-            tempo_travel_plan = []
-            print(f"Traitement drone D{drone.id}")  # TEMPO
-            tempo_travel_plan.append(drone.drone_pos)
+            travel_plan_test = []
+            travel_plan_test.append(start_hub.datas)
+            print(f"Drone D{drone.id}:")  # TEMPO
 
-            # TEMPO
-            while drone.drone_pos.type != "end_hub":
-                _, _, hub = self.find_hub_by_name(drone.drone_pos.name)
-                drone.drone_pos = hub.neighboring_hubs[0][0].datas
-                tempo_travel_plan.append(drone.drone_pos)
+            # -     Boucle sur ce drone tant que tous les chemins en partance de start_hub n'ont pas ete explores
+            print("    Depuis start_hub:")  # TEMPO
+            for desti_start_hub, conn_start in start_hub.neighboring_hubs:
+                print(f"        {desti_start_hub.datas.name}")  # TEMPO
 
-            drone.travel_plan = tempo_travel_plan
-            if (len(drone.travel_plan)) > self.nb_turn:
-                self.nb_turn = len(drone.travel_plan)
+        # -         passe chaque fois au premier hub voisin qui suit
 
-            # TEMPO
-            print(" Parcours:")
-            turn_num = 0
-            for hub_datas in drone.travel_plan:
-                print(f"        turn: {turn_num} => {hub_datas.name}")
-                turn_num += 1
+        # -             Si deja occupe => fait des tours jusqu'a ce qu'il soit libere puis s'y place
+        # -             Si deja explore, test le hub voisin suivant
+        # -             Si tous les hubs voisin explores, revient un hub en arriere
+        # -             si end_hub atteint => sauvegarde ce chemin si c'est le plus court et revient un hub en arriere
+        # -     Si aucun chemin sauvegarder pour ce drone => raise
+        # -     drone suivant
+
+        # - Boucle sur chaque drones de la map un par un dans variable drone
+        # -     Boucle sur ce drone tant que tous les chemins en partance de start_hub n'ont pas ete explores
+        # -         passe chaque fois au premier hub voisin qui suit
+        # -             Si deja occupe => fait des tours jusqu'a ce qu'il soit libere puis s'y place
+        # -             Si deja explore, test le hub voisin suivant
+        # -             Si tous les hubs voisin explores, revient un hub en arriere
+        # -             si end_hub atteint => sauvegarde ce chemin si c'est le plus court et revient un hub en arriere
+        # -     Si aucun chemin sauvegarder pour ce drone => raise
+        # -     drone suivant
+
+    # def dijkstra_algorythm(self) -> None:
+    #     loop_drone: int
+    #     loop_hub: int
+    #     drone: parsing.MapParsing.Drone
+    #     hub_next: Optional[parsing.MapParsing.Hub]
+    #     hub_datas: parsing.MapParsing.Hub.HubData
+    #     hub: parsing.MapParsing.Hub
+
+    #     tempo_travel_plan: list[Optional[parsing.MapParsing.Hub.HubData]]
+
+    #     turn_num: int
+    #     # Boucle sur tous les Drones un par un:
+    #     #   va au hub voisin suivant par ordre de priorite:
+    #     #       => si deja occupe, boucle jusqu'a ce qu'il soit libre
+    #     #       => si deja emprunte, test le suivant
+    #     #       => si suivant end_hub, compare le nombre de tours effectues,
+    #     #           le cas echeant,
+    #     #           avec le nombre de tours du parcours precedent,
+    #     #           et garde celui qui a le moins de tours,
+    #     #           puis revient un hub en arriere et poursuit la boucle hub
+    #     #       => si tous testes
+    #     #           => si start_hub et pas de chemins trouves: message d'erreur
+    #     #           => si start_hub et chemin trouve, passe au drone suivant
+    #     #           => sinon: revient au hub precedent
+    #     #                     et continue la boucle hub
+
+    #     # chaque hub et chaque connection contient le numero des Drones
+    #     #   presents par tour (None lorsqu'aucun drone present)
+    #     # Chaque drone contient ses deplacements par tour
+    #     #   (none lorsque pqs de deplacement)
+
+    #     if self.drone_list is None or self.drone_list == []:
+    #         raise ValueError("There is no drone in the map")
+
+    #     # Boucle sur tous les Drones un par un:
+    #     for drone in self.drone_list:
+    #         tempo_travel_plan = []
+    #         print(f"Traitement drone D{drone.id}")  # TEMPO
+    #         tempo_travel_plan.append(drone.drone_pos)
+
+    #         loop_drone = 1
+    #         while loop_drone:
+    #             # Recovery next hub
+    #             hub_next = self.recov_next_hub(
+    #                 drone.drone_pos, tempo_travel_plan
+    #             )
+    #             if hub_next is None:
+    #                 loop_drone = 0
+
+    #         # # TEMPO ALGORYTHM
+    #         # while drone.drone_pos.type != "end_hub":
+    #         #     _, _, hub = self.find_hub_by_name(drone.drone_pos.name)
+    #         #     drone.drone_pos = hub.neighboring_hubs[0][0].datas
+    #         #     tempo_travel_plan.append(drone.drone_pos)
+
+    #         drone.travel_plan = tempo_travel_plan
+    #         if (len(drone.travel_plan)) > self.nb_turn:
+    #             self.nb_turn = len(drone.travel_plan)
+
+    #         # # TEMPO
+    #         # print(" Parcours:")
+    #         # turn_num = 0
+    #         # for hub_datas in drone.travel_plan:
+    #         #     print(f"        turn: {turn_num} => {hub_datas.name}")
+    #         #     turn_num += 1
 
     # Prend chaque Drone dans l'ordre et cherche le chemin le plus cours
     #   en fonction du positionnement des autre drones et des zones
@@ -184,6 +253,9 @@ class DronesManager:
         """Manage Drones Movements"""
 
         self.sort_hubs_neighbours()
+
+        print("ALGORYTHM:\n")  # TEMPO
+
         self.dijkstra_algorythm()
 
 

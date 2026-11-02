@@ -16,6 +16,7 @@ class MapParsing:
         # Definitive Datas
         self.hub_list: list[MapParsing.Hub] = []
         self.connection_list: list[MapParsing.Connection] = []
+
         self.nb_drones: int = 0
         self.nb_turn: int = 0
 
@@ -32,7 +33,9 @@ class Connection(BaseModel):
 	hub1: "MapParsing.HubData"
 	hub2: "MapParsing.HubData"
 	nb_drones_in: int = Field(default=0, ge=0)
-	drones_in_connect: list["MapParsing.Drone"] = Field(default_factory=list)
+	drones_in_connect: list[Optional[list["MapParsing.Drone"]]] = Field(
+            default_factory=lambda: [None]
+        )
 	max_drones_allow: int = Field(default=1, ge=0)
 	
 class Hub:
@@ -46,6 +49,10 @@ class Hub:
             self.neighboring_hubs_forbiden: list[
                 tuple["MapParsing.Hub", "MapParsing.Connection"]
             ] = []
+            
+            self.drones_by_time: list[Optional[list[MapParsing.Drone]]] = [
+                None
+            ]
             
 class DatasType(str, Enum):
         nb_drones = "nb_drones"
