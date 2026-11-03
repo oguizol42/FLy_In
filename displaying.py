@@ -12,6 +12,7 @@ class Displaying:
     connection_list: list[parsing.MapParsing.Connection]
     drone_list: list[parsing.MapParsing.Drone]
     nb_drones: int
+    nb_turn: int
 
     # def find_hub_by_type2(
     #     self, type: str
@@ -365,6 +366,9 @@ class Displaying:
         """Display simulation step by step"""
         n: int
         drone: parsing.MapParsing.Drone
+        area: Optional[
+            parsing.MapParsing.Hub.HubData | parsing.MapParsing.Connection
+        ]
 
         for n in range(1, self.nb_turn):
             for drone in self.drone_list:
@@ -372,9 +376,12 @@ class Displaying:
                     drone.travel_plan is not None
                     and drone.travel_plan != []
                     and len(drone.travel_plan) >= (n + 1)
-                    and drone.travel_plan[n] is not None
                 ):
-                    print(f"D{drone.id}-{drone.travel_plan[n].name} ", end="")
+                    area = drone.travel_plan[n]
+                    if area is not None and isinstance(
+                        area, parsing.MapParsing.Hub.HubData
+                    ):
+                        print(f"D{drone.id}-{area.name} ", end="")
             print("")
 
         # • The simulation must output the step-by-step movement of drones

@@ -213,12 +213,16 @@ class MapParsing:
         hub1: "MapParsing.Hub.HubData"
         hub2: "MapParsing.Hub.HubData"
         nb_drones_in: int = Field(default=0, ge=0)
-        # drones_in_connect: list[Optional[list["MapParsing.Drone"]]] = Field(
-        #     default_factory=list
-        # )
         drones_in_connect: list[Optional[list["MapParsing.Drone"]]] = Field(
-            default_factory=lambda: [None]
+            default_factory=list
         )
+        # drones_in_connect: list[Optional[list["MapParsing.Drone"]]] = Field(
+        #     default_factory=lambda: [None]
+        # )
+        # drones_in_connect: list[Optional[list["MapParsing.Drone"]]] = Field(
+        #     default_factory="MapParsing._default_drones"
+        # )
+
         max_drones_allow: int = Field(default=1, ge=0)
 
         @model_validator(mode="after")
@@ -407,6 +411,7 @@ class MapParsing:
                 hub2=hubb,
                 max_drones_allow=connection[1],
             )
+            connect.drones_in_connect.append(None)
             self.connection_list.append(connect)
 
     def create_drone_list(self) -> None:
@@ -423,7 +428,7 @@ class MapParsing:
             new_drone = self.Drone(id=n + 1, drone_pos=hub_start.datas)
             self.drone_list.append(new_drone)
             drones_list.append(new_drone)
-        hub_start.datas.drones_in_hub = drones_list
+        hub_start.datas.drones_in_hub.append(drones_list)
         hub_start.drones_by_time[0] = drones_list
 
     def init_neighboring_hubs(self) -> None:

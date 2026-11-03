@@ -4,6 +4,7 @@ from typing import Optional
 
 class DronesManager:
     hub_list: list[parsing.MapParsing.Hub]
+    connection_list: list[parsing.MapParsing.Connection]
 
     def find_hub_by_type(self, type: str) -> tuple[
         Optional["parsing.MapParsing.Hub.HubData"],
@@ -95,6 +96,54 @@ class DronesManager:
     #             return hub
     #     return None
 
+    def find_connect(
+        self, hub1: parsing.MapParsing.Hub, hub2: parsing.MapParsing.Hub
+    ) -> parsing.MapParsing.Connection:
+        """Find Connection Between Two Hubs"""
+        connection: parsing.MapParsing.Connection
+
+        for connection in self.connection_list:
+            if hub1.datas is connection.hub1 and hub2.datas is connection.hub2:
+                return connection
+            if hub2.datas is connection.hub1 and hub1.datas is connection.hub2:
+                return connection
+        raise ValueError(
+            f"Invalid Connection between {hub1.datas.name} "
+            f"and {hub2.datas.name}"
+        )
+
+    def allow_time(
+        self,
+        start: parsing.MapParsing.Hub,
+        desti: parsing.MapParsing.Hub,
+        time: int = 0,
+    ) -> int:
+        """Notice Next Time when place is allowed"""
+        time_allow: int = time
+        list_drones: Optional[list[parsing.MapParsing.Drone]]
+        connection: parsing.MapParsing.Connection
+
+        # check if hub is free
+        if time_allow >= len(desti.drones_by_time):
+            return time_allow
+
+        connection = self.find_connect(start, desti)
+        # Ajouter test de la connection
+        for time_allow in range(time_allow, len(desti.drones_by_time)):
+            list_drones = desti.drones_by_time[time_allow]
+            if list_drones is None or list_drones == []:
+                return time_allow
+            elif len(list_drones) < desti.metas.max_drones:
+                if (
+                    connection.drones_in_connect is None
+                    or connection.drones_in_connect == []
+                    or len(connection.drones_in_connect)
+                    < connection.max_drones_allow
+                ):
+                    return time_allow
+
+        return time_allow
+
     def dijkstra_algorythm(self) -> None:
         drone: parsing.MapParsing.Drone
         travel_plan_test: list[
@@ -106,8 +155,10 @@ class DronesManager:
         desti_hub: parsing.MapParsing.Hub
         connect: parsing.MapParsing.Connection
 
-        start_hub: parsing.MapParsing.Hub = self.find_hub_by_type("start_hub")
+        start_hub: Optional[parsing.MapParsing.Hub]
         _, _, start_hub = self.find_hub_by_type("start_hub")
+        if start_hub is None:
+            raise ValueError("There is not start_hub in this map")
         desti_start_hub: parsing.MapParsing.Hub
         conn_start: parsing.MapParsing.Connection
 
@@ -117,27 +168,40 @@ class DronesManager:
             travel_plan_test.append(start_hub.datas)
             print(f"Drone D{drone.id}:")  # TEMPO
 
-            # -     Boucle sur ce drone tant que tous les chemins en partance de start_hub n'ont pas ete explores
+            # -     Boucle sur ce drone tant que tous les chemins en partance
+            #       de start_hub n'ont pas ete explores
             print("    Depuis start_hub:")  # TEMPO
             for desti_start_hub, conn_start in start_hub.neighboring_hubs:
-                print(f"        {desti_start_hub.datas.name}")  # TEMPO
+                print(
+                    f"        {desti_start_hub.datas.name} "
+                    f"connection: C{conn_start.id}"
+                )  # TEMPO
 
         # -         passe chaque fois au premier hub voisin qui suit
 
-        # -             Si deja occupe => fait des tours jusqu'a ce qu'il soit libere puis s'y place
+        # -             Si deja occupe => fait des tours jusqu'a ce qu'il soit
+        #                                 libere puis s'y place
         # -             Si deja explore, test le hub voisin suivant
-        # -             Si tous les hubs voisin explores, revient un hub en arriere
-        # -             si end_hub atteint => sauvegarde ce chemin si c'est le plus court et revient un hub en arriere
+        # -             Si tous les hubs voisin explores,
+        #               revient un hub en arriere
+        # -             si end_hub atteint => sauvegarde ce chemin
+        #                                     si c'est le plus court
+        #                                     et revient un hub en arriere
         # -     Si aucun chemin sauvegarder pour ce drone => raise
         # -     drone suivant
 
         # - Boucle sur chaque drones de la map un par un dans variable drone
-        # -     Boucle sur ce drone tant que tous les chemins en partance de start_hub n'ont pas ete explores
+        # -     Boucle sur ce drone tant que tous les chemins
+        #       en partance de start_hub n'ont pas ete explores
         # -         passe chaque fois au premier hub voisin qui suit
-        # -             Si deja occupe => fait des tours jusqu'a ce qu'il soit libere puis s'y place
+        # -             Si deja occupe => fait des tours jusqu'a
+        #                                 ce qu'il soit libere puis s'y place
         # -             Si deja explore, test le hub voisin suivant
-        # -             Si tous les hubs voisin explores, revient un hub en arriere
-        # -             si end_hub atteint => sauvegarde ce chemin si c'est le plus court et revient un hub en arriere
+        # -             Si tous les hubs voisin explores,
+        #               revient un hub en arriere
+        # -             si end_hub atteint => sauvegarde ce chemin si c'est
+        #                                     le plus court et revient
+        #                                     un hub en arriere
         # -     Si aucun chemin sauvegarder pour ce drone => raise
         # -     drone suivant
 
@@ -162,7 +226,8 @@ class DronesManager:
     #     #           et garde celui qui a le moins de tours,
     #     #           puis revient un hub en arriere et poursuit la boucle hub
     #     #       => si tous testes
-    #     #           => si start_hub et pas de chemins trouves: message d'erreur
+    #     #           => si start_hub et pas de chemins trouves:
+    #                    message d'erreur
     #     #           => si start_hub et chemin trouve, passe au drone suivant
     #     #           => sinon: revient au hub precedent
     #     #                     et continue la boucle hub
