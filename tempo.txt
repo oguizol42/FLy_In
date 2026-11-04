@@ -1,6 +1,13 @@
 class MapParsing:
     map_text: Optional[str] = None
     drone_list: list["MapParsing.Drone"] = []
+    
+    def allow_time(
+        self,
+        start: parsing.MapParsing.Hub,
+        desti: parsing.MapParsing.Hub,
+        start_time: int = 0,
+    ) -> int:
 
     def __init__(self) -> None:
         super().__init__()

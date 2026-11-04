@@ -116,19 +116,18 @@ class DronesManager:
         self,
         start: parsing.MapParsing.Hub,
         desti: parsing.MapParsing.Hub,
-        time: int = 0,
+        start_time: int,
     ) -> int:
         """Notice Next Time when place is allowed"""
-        time_allow: int = time
+        time_allow: int = start_time
         list_drones: Optional[list[parsing.MapParsing.Drone]]
         connection: parsing.MapParsing.Connection
-
+        
         # check if hub is free
         if time_allow >= len(desti.drones_by_time):
             return time_allow
 
         connection = self.find_connect(start, desti)
-        # Ajouter test de la connection
         for time_allow in range(time_allow, len(desti.drones_by_time)):
             list_drones = desti.drones_by_time[time_allow]
             if list_drones is None or list_drones == []:
@@ -138,12 +137,70 @@ class DronesManager:
                     connection.drones_in_connect is None
                     or connection.drones_in_connect == []
                     or len(connection.drones_in_connect)
-                    < connection.max_drones_allow
+                    <= time_allow
                 ):
                     return time_allow
-
+        time_allow = time_allow + 1
         return time_allow
 
+    def add_drone_in_hub(
+        self,
+        drone: parsing.MapParsing.Drone,
+        dest: parsing.MapParsing.Hub,
+        turn_at_dest: int
+        ) -> None:
+
+        """Add drone in hub"""
+        if turn_at_dest < len(dest.drones_by_time):
+            dest.drones_by_time[turn_at_dest].append(drone)
+        else:
+
+            for _ in range(len(dest.drones_by_time), turn_at_dest):
+                dest.drones_by_time.append(None)
+            dest.drones_by_time.append([])
+            dest.drones_by_time[turn_at_dest].append(drone)
+
+    def add_drone_in_connect(
+        self,
+        drone: parsing.MapParsing.Drone,
+        connect: parsing.MapParsing.Connection,
+        turn_at_dest: int
+        ) -> None:
+
+        """Add drone in hub"""
+        if turn_at_dest < len(connect.drones_in_connect):
+            connect.drones_in_connect[turn_at_dest].append(drone)
+        else:
+
+            for _ in range(len(connect.drones_in_connect), turn_at_dest):
+                connect.drones_in_connect.append(None)
+            connect.drones_in_connect.append([])
+            connect.drones_in_connect[turn_at_dest].append(drone)
+
+
+    def drone_to_dest(
+        self,
+        drone: parsing.MapParsing.Drone,
+        dest: parsing.MapParsing.Hub | parsing.MapParsing.Connection,
+        connect: parsing.MapParsing.Connection,
+        turn_at_dest: int
+        ) -> None:
+        """Move Drone to Next Hub"""
+
+        # Add the move in drone travel plan
+        if turn_at_dest < len(drone.travel_plan):
+            drone.travel_plan[turn_at_dest] = dest
+        else:
+            for _ in range(len(drone.travel_plan), turn_at_dest):
+                drone.travel_plan.append(None)
+            drone.travel_plan.append(dest.datas)
+
+        # Add the move in the hub of destination
+        self.add_drone_in_hub(drone, dest, turn_at_dest)
+
+        # Add the move in the connection
+        self.add_drone_in_connect(drone, connect, turn_at_dest)
+            
     def dijkstra_algorythm(self) -> None:
         drone: parsing.MapParsing.Drone
         travel_plan_test: list[
@@ -151,6 +208,9 @@ class DronesManager:
                 parsing.MapParsing.Hub.HubData | parsing.MapParsing.Connection
             ]
         ]
+
+        turn: int
+        turn_to_dest: int
 
         desti_hub: parsing.MapParsing.Hub
         connect: parsing.MapParsing.Connection
@@ -166,16 +226,19 @@ class DronesManager:
         for drone in self.drone_list:
             travel_plan_test = []
             travel_plan_test.append(start_hub.datas)
-            print(f"Drone D{drone.id}:")  # TEMPO
+            drone.travel_plan.append(start_hub.datas)
 
             # -     Boucle sur ce drone tant que tous les chemins en partance
             #       de start_hub n'ont pas ete explores
-            print("    Depuis start_hub:")  # TEMPO
             for desti_start_hub, conn_start in start_hub.neighboring_hubs:
-                print(
-                    f"        {desti_start_hub.datas.name} "
-                    f"connection: C{conn_start.id}"
-                )  # TEMPO
+                turn = 1
+                turn_at_dest = 1
+                turn_at_dest = self.allow_time(start_hub, desti_start_hub, turn)
+                self.drone_to_dest(drone, desti_start_hub, conn_start, turn_at_dest)
+                turn = turn_at_dest + 1
+                self.nb_turn = turn
+                
+
 
         # -         passe chaque fois au premier hub voisin qui suit
 
