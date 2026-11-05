@@ -370,9 +370,9 @@ class Displaying:
             parsing.MapParsing.Hub.HubData | parsing.MapParsing.Connection
         ]
 
-        print("SIMULATION") # TEMPO
+        print("\nSIMULATION:\n")  # TEMPO
         for n in range(1, self.nb_turn):
-            print(f"tour {n}") # TEMPO
+            print(f"tour {n}")  # TEMPO
             for drone in self.drone_list:
                 if (
                     drone.travel_plan is not None
@@ -383,8 +383,8 @@ class Displaying:
                     if area is not None and isinstance(
                         area, parsing.MapParsing.Hub.HubData
                     ):
-                        print(f"D{drone.id}-{area.name} ") #, end="")
-            print("")
+                        print(f"D{drone.id}-{area.name} ", end="")
+            print("\n")
 
         # • The simulation must output the step-by-step movement of drones
         #   from the start to the end zone.

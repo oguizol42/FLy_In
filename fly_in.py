@@ -45,7 +45,9 @@ class Manage_flies:
 
 def main() -> None:
     try:
-        map: Drone_Map = Drone_Map("maps/easy/01_linear_path.txt")
+        map: Drone_Map = Drone_Map("maps_test/01_linear_path.txt")
+        # map: Drone_Map = Drone_Map("maps_test/01_linear_path_8_drones.txt")
+        # map: Drone_Map = Drone_Map("maps/easy/01_linear_path.txt")
         # map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
         # map: Drone_Map = Drone_Map("maps/hard/03_ultimate_challenge.txt")
 
