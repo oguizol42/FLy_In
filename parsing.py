@@ -208,6 +208,10 @@ class MapParsing:
             Optional["MapParsing.Hub.HubData | MapParsing.Connection"]
         ] = Field(default_factory=list)
 
+        best_travel_plan: list[
+            Optional["MapParsing.Hub.HubData | MapParsing.Connection"]
+        ] = Field(default_factory=list)
+
     class Connection(BaseModel):
         id: int
         hub1: "MapParsing.Hub.HubData"

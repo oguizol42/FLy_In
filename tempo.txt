@@ -34,6 +34,10 @@ class Drone(BaseModel):
         travel_plan: list[
             Optional["MapParsing.Hub.HubData | MapParsing.Connection"]
         ] = Field(default_factory=list)
+        
+        travel_test: list[
+            Optional["MapParsing.Hub.HubData | MapParsing.Connection"]
+        ] = Field(default_factory=list)
 
 class Connection(BaseModel):
 	id: int
