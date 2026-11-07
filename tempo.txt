@@ -30,12 +30,12 @@ class MapParsing:
 class Drone(BaseModel):
         id: int
         drone_pos: "MapParsing.Hub.HubData | MapParsing.Connection"
-        
+
         travel_plan: list[
             Optional["MapParsing.Hub.HubData | MapParsing.Connection"]
         ] = Field(default_factory=list)
-        
-        travel_test: list[
+
+        best_travel_plan: list[
             Optional["MapParsing.Hub.HubData | MapParsing.Connection"]
         ] = Field(default_factory=list)
 

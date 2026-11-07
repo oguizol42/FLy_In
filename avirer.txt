@@ -1,0 +1,33 @@
+connection = self.find_connect(start, desti)
+        for time_allow in range(time_allow, len(desti.drones_by_time)):
+            list_drones = desti.drones_by_time[time_allow]
+            if list_drones is None or list_drones == []:
+                return time_allow
+            elif len(list_drones) < desti.metas.max_drones:
+                if (
+                    connection.drones_in_connect is None
+                    or connection.drones_in_connect == []
+                    or len(connection.drones_in_connect) <= time_allow
+                ):
+                    return time_allow
+
+                # check mypy
+                if isinstance(
+                    connection.drones_in_connect[time_allow],
+                    list,
+                ):
+                    list_drones = connection.drones_in_connect[time_allow]
+                    if isinstance(
+                        list_drones,
+                        list,
+                    ):
+                        if len(list_drones) < connection.max_drones_allow:
+                            return time_allow
+                # if (
+                #     connection.drones_in_connect is None
+                #     or connection.drones_in_connect == []
+                #     or len(connection.drones_in_connect) <= time_allow
+                #     or len(connection.drones_in_connect[time_allow])
+                #     < connection.max_drones_allow
+                # ):
+                #     return time_allow
