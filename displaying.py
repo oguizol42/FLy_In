@@ -377,9 +377,9 @@ class Displaying:
                 if (
                     drone.travel_plan is not None
                     and drone.travel_plan != []
-                    and len(drone.travel_plan) >= (n + 1)
+                    and len(drone.best_travel_plan) >= (n + 1)
                 ):
-                    area = drone.travel_plan[n]
+                    area = drone.best_travel_plan[n]
                     if area is not None and isinstance(
                         area, parsing.MapParsing.Hub.HubData
                     ):
