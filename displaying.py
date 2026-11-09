@@ -380,10 +380,11 @@ class Displaying:
                     and len(drone.best_travel_plan) >= (n + 1)
                 ):
                     area = drone.best_travel_plan[n]
-                    if area is not None and isinstance(
-                        area, parsing.MapParsing.Hub.HubData
-                    ):
-                        print(f"D{drone.id}-{area.name} ", end="")
+                    if area is not None:
+                        if isinstance(area, parsing.MapParsing.Hub.HubData):
+                            print(f"D{drone.id}-{area.name} ", end="")
+                        elif isinstance(area, parsing.MapParsing.Connection):
+                            print(f"D{drone.id}-restrictedConn ", end="")
             print("\n")
 
         # • The simulation must output the step-by-step movement of drones
