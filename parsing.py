@@ -495,3 +495,4 @@ class MapParsing:
 
 
 # Modifier affichage des donnees dans le terminal pour etre conforme au sujet
+# Revoir neighboring_hubs neighboring_hubs_forbiden pour etre defini uniquement sur des hubs et pas des connections

@@ -438,16 +438,129 @@ class DronesManager:
                 connection = dest
                 self.add_drone_in_connect(drone, connection, turn)
 
-    def find_best_path(self, drone: parsing.MapParsing.Drone) -> bool:
-        """Find Best Path for One Drone Recursivly"""
+    # def find_best_path(self, drone: parsing.MapParsing.Drone) -> bool:
+    #     """Find Best Path for One Drone Recursivly"""
 
+    #     neighboring_hubs: list[
+    #         tuple[parsing.MapParsing.Hub, parsing.MapParsing.Connection]
+    #     ] = []
+
+    #     drone_pos: (
+    #         parsing.MapParsing.Hub | None
+    #     )  # | parsing.MapParsing.Connection
+
+    #     hubs_visited: list[
+    #         Optional[
+    #             parsing.MapParsing.Hub.HubData | parsing.MapParsing.Connection
+    #         ]
+    #     ] = list(drone.travel_plan)
+
+    #     end_hub: parsing.MapParsing.Hub | None
+    #     dest: parsing.MapParsing.Hub
+    #     connection: parsing.MapParsing.Connection
+    #     turn_at_dest: int = len(drone.travel_plan)
+    #     turn: int = len(drone.travel_plan)
+    #     interm_turn: int
+
+    #     # check mypy
+    #     if isinstance(drone.drone_pos, parsing.MapParsing.Hub.HubData):
+    #         _, _, drone_pos = self.find_hub_by_name(drone.drone_pos.name)
+
+    #     # check mypy
+    #     if isinstance(drone_pos, parsing.MapParsing.Hub):
+    #         neighboring_hubs = drone_pos.neighboring_hubs
+
+    #     _, _, end_hub = self.find_hub_by_type("end_hub")
+
+    #     # print(" FIND BEST PATH")  # TEMPO
+
+    #     if drone_pos is end_hub:
+
+    #         if (
+    #             drone.best_travel_plan is None
+    #             or drone.best_travel_plan == []
+    #             or len(drone.travel_plan) < len(drone.best_travel_plan)
+    #         ):
+    #             drone.best_travel_plan = list(drone.travel_plan)
+    #         # print(" END HUB")  # TEMPO
+
+    #     else:
+
+    #         # TEMPO check mypy
+    #         # if isinstance(drone_pos, parsing.MapParsing.Hub):
+    #             # print(f" pos depart: {drone_pos.datas.name}")  # TEMPO
+
+    #         for dest, connection in neighboring_hubs:
+    #             # Check if Hub already visited
+    #             if dest.datas in hubs_visited:
+    #                 continue
+
+    #             # CHECK mypy
+    #             if isinstance(drone_pos, parsing.MapParsing.Hub):
+    #                 # Nbr turn to dest
+    #                 turn_at_dest = self.allow_time(
+    #                     drone_pos,
+    #                     dest,
+    #                     turn,
+    #                 )
+
+    #                 # Add Drone in present Hub for Turn without Move
+    #                 for interm_turn in range((turn + 1), turn_at_dest):
+    #                     self.add_drone_in_hub(drone, drone_pos, interm_turn)
+
+    #             # print(f"     turn at dest: {turn_at_dest}")  # TEMPO
+
+    #             # Move drone to dest
+    #             self.drone_to_dest(
+    #                 drone,
+    #                 dest,
+    #                 connection,
+    #                 turn_at_dest,
+    #             )
+
+    #             # TEMPO
+    #             # if isinstance(drone.drone_pos, parsing.MapParsing.Hub.HubData):
+    #             #     print(f" pos after: {drone.drone_pos.name}")  # TEMPO
+
+    #             self.find_best_path(drone)
+
+    #             hubs_visited.append(dest.datas)
+
+    #             self.tempo()
+    #             self.delete_last_drone_move(drone, connection)
+
+    #             if isinstance(drone_pos, parsing.MapParsing.Hub):
+    #                 drone.drone_pos = drone_pos.datas
+
+    #     # Prend la position actuelle du drone:
+    #     #   => si end_Hub: sauvegarde le chemin le plus court entre l'actuel
+    #     #      et le precedent
+    #     #       => si drone.best_travel_plan vide ou plus petit que
+    #     #          drone.travel_plan:
+    #     #               copie drone.travel_plan dans drone.best_travel_plan
+
+    #     #   => sinon: place le drone sur le hub suivant et relance la fonction
+    #     #       Determine le prochain hub en examinant
+    #     #       tout ce qui a deja ete exploré depuis cette recusivitee
+    #     #       Compte le nombre de tour jusqu'a ce que le hub soit libre
+    #     #       Deplace le drone sur le nouveau hub
+    #     #
+    #     return True
+
+    def find_best_path(self, drone: parsing.MapParsing.Drone) -> bool:
+    #     """Find Best Path for One Drone Recursivly"""
+        travel_plan: list(
+            parsing.MapParsing.Hub.HubData
+            | parsing.MapParsing.Connection
+            | None
+        )
         neighboring_hubs: list[
             tuple[parsing.MapParsing.Hub, parsing.MapParsing.Connection]
         ] = []
 
         drone_pos: (
-            parsing.MapParsing.Hub | None
-        )  # | parsing.MapParsing.Connection
+            parsing.MapParsing.Hub | parsing.MapParsing.Connection
+        ) 
 
         hubs_visited: list[
             Optional[
@@ -458,21 +571,24 @@ class DronesManager:
         end_hub: parsing.MapParsing.Hub | None
         dest: parsing.MapParsing.Hub
         connection: parsing.MapParsing.Connection
-        turn_at_dest: int = len(drone.travel_plan)
-        turn: int = len(drone.travel_plan)
+        turn: int
+        turn_at_dest: int
         interm_turn: int
 
+
+        # Save state
+        turn: int = len(drone.travel_plan)
+        turn_at_dest: int = len(drone.travel_plan)
         # check mypy
         if isinstance(drone.drone_pos, parsing.MapParsing.Hub.HubData):
             _, _, drone_pos = self.find_hub_by_name(drone.drone_pos.name)
+        travel_plan = list(drone.travel_plan)
 
         # check mypy
         if isinstance(drone_pos, parsing.MapParsing.Hub):
             neighboring_hubs = drone_pos.neighboring_hubs
 
         _, _, end_hub = self.find_hub_by_type("end_hub")
-
-        # print(" FIND BEST PATH")  # TEMPO
 
         if drone_pos is end_hub:
 
@@ -482,57 +598,41 @@ class DronesManager:
                 or len(drone.travel_plan) < len(drone.best_travel_plan)
             ):
                 drone.best_travel_plan = list(drone.travel_plan)
-            # print(" END HUB")  # TEMPO
 
-        else:
+        for dest, connection in neighboring_hubs:
 
-            # TEMPO check mypy
-            # if isinstance(drone_pos, parsing.MapParsing.Hub):
-                # print(f" pos depart: {drone_pos.datas.name}")  # TEMPO
+            # Check if Hub already visited
+            if dest.datas in hubs_visited:
+                continue
+            
+            hubs_visited.append(dest.datas)
 
-            for dest, connection in neighboring_hubs:
-                # Check if Hub already visited
-                if dest.datas in hubs_visited:
-                    continue
+#       - Sauvegarde etat actuel en local:
+#               - nbr de tours
+#               - position
+#               - travel plan
 
-                # CHECK mypy
-                if isinstance(drone_pos, parsing.MapParsing.Hub):
-                    # Nbr turn to dest
-                    turn_at_dest = self.allow_time(
-                        drone_pos,
-                        dest,
-                        turn,
-                    )
+    # Si pos Drone == end_hub:
+    #   => si drone.best_travel_plan vide ou plus grand que drone.travel_plan
+    #           => copie drone.travel_plan dans drone.best_travel_plan
+    #      Replace drone un hub en arriere
 
-                    # Add Drone in present Hub for Turn without Move
-                    for interm_turn in range((turn + 1), turn_at_dest):
-                        self.add_drone_in_hub(drone, drone_pos, interm_turn)
+    # Sinon:
+    #   => Boucle jusqu'a exploration de tous les voisins:
+    #       - Determine le prochain hub en examinant
+    #         tout ce qui a deja ete exploré depuis cette recusivitee
+    #       - Sauvegarde ce nouveau deplacement en local
+    #       - Compte le nombre de tour jusqu'a ce que le hub soit libre 
+    #         (en prenant en compte si c'est une restricted zone)
+    #       - Deplace le drone sur le nouveau hub (en prenant en compte si c'est une restricted zone)
+    #       - find_best_path sur la prochaine destination
+    #       - retablie l'etat de depart de la boucle au niveau:
+    #               - nbr de tours
+    #               - position
+    #               - travel plan
 
-                # print(f"     turn at dest: {turn_at_dest}")  # TEMPO
 
-                # Move drone to dest
-                self.drone_to_dest(
-                    drone,
-                    dest,
-                    connection,
-                    turn_at_dest,
-                )
-
-                # TEMPO
-                # if isinstance(drone.drone_pos, parsing.MapParsing.Hub.HubData):
-                #     print(f" pos after: {drone.drone_pos.name}")  # TEMPO
-
-                self.find_best_path(drone)
-
-                hubs_visited.append(dest.datas)
-
-                self.tempo()
-                self.delete_last_drone_move(drone, connection)
-
-                if isinstance(drone_pos, parsing.MapParsing.Hub):
-                    drone.drone_pos = drone_pos.datas
-
-        # Prend la position actuelle du drone:
+    # Prend la position actuelle du drone:
         #   => si end_Hub: sauvegarde le chemin le plus court entre l'actuel
         #      et le precedent
         #       => si drone.best_travel_plan vide ou plus petit que
@@ -562,10 +662,9 @@ class DronesManager:
             #   en sauvegardant toujours le plus court
 
             # check mypy
+            # Initialising travel_plan of Drone
             if isinstance(start_hub, parsing.MapParsing.Hub):
                 drone.travel_plan.append(start_hub.datas)
-
-            # print(f"algo test D{drone.id}")  # TEMPO
 
             if self.find_best_path(drone) is False:
                 raise ValueError("There is not path to end_hub")
