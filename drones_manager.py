@@ -72,17 +72,16 @@ class DronesManager:
                     elif hub_neighbour.metas.zone_type == "restricted":
                         hubs_restricted.append((hub_neighbour, connection))
 
-                    hub.neighboring_hubs = []
-                    hub.neighboring_hubs_forbiden = []
+                hub.neighboring_hubs = []
+                hub.neighboring_hubs_forbiden = []
 
-                    if hub.metas.zone_type != "end_hub":
-                        for hub_connection in hubs_priority:
-                            hub.neighboring_hubs.append(hub_connection)
-                        for hub_connection in hubs_normal:
-                            hub.neighboring_hubs.append(hub_connection)
-                        for hub_connection in hubs_restricted:
-                            hub.neighboring_hubs.append(hub_connection)
-                        hub.neighboring_hubs_forbiden = hubs_blocked
+                for hub_connection in hubs_priority:
+                    hub.neighboring_hubs.append(hub_connection)
+                for hub_connection in hubs_normal:
+                    hub.neighboring_hubs.append(hub_connection)
+                for hub_connection in hubs_restricted:
+                    hub.neighboring_hubs.append(hub_connection)
+                hub.neighboring_hubs_forbiden = hubs_blocked
 
         # 2/ parcours tous les hubs et trie neighboring_hubs:
         #   par priorite de zone a parcourir
@@ -349,40 +348,33 @@ class DronesManager:
         turn_at_dest: int,
         turn_at_start: int,
     ) -> None:
-        turn: int
+        """Add Drone In Hubs concerning by a Move"""
+
+        hub_start: parsing.MapParsing.Hub
+        last_turn: int
+        turn_update: int
         count: int
-        drone_list: list[parsing.MapParsing.Drone] | None
-        hub_pos: parsing.MapParsing.Hub.HubData | parsing.MapParsing.Connection
-        hub: parsing.MapParsing.Hub | None
 
-        # Init hub_dest
+        turn_update = turn_at_dest
+        if hub_dest.metas.zone_type == "restricted":
+            turn_update -= 1
+
+        # Update Drone list in hub_start before moving
+        if isinstance(drone.drone_pos, parsing.MapParsing.Hub.HubData):
+            _, _, hub_start = self.find_hub_by_name(drone.drone_pos.name)
+            last_turn = len(hub_start.drones_by_time) - 1
+            if last_turn < (turn_at_dest - 1):
+                for _ in range(last_turn, (turn_at_dest - 1)):
+                    hub_start.drones_by_time.append([])
+            for count in range((turn_at_start + 1), turn_update):
+                hub_start.drones_by_time[count].append(drone)
+
+        # Update Drone list in hub_dest
         last_turn = len(hub_dest.drones_by_time) - 1
-        if last_turn < turn_at_dest:
+        if last_turn < (turn_at_dest):
             for _ in range(last_turn, turn_at_dest):
-                hub_dest.drones_by_time.append(None)
-
-        if hub_dest.drones_by_time[turn_at_dest] is None:
-            hub_dest.drones_by_time[turn_at_dest] = []
-
-        drone_list = hub_dest.drones_by_time[turn_at_dest]
-        # CHECK mypy
-        if isinstance(drone_list, list):
-            drone_list.append(drone)
-
-        # Uploaded Hub pos of Drone
-        hub_pos = drone.drone_pos
-        # CHECK mypy
-        if isinstance(hub_pos, parsing.MapParsing.Hub.HubData):
-            _, _, hub = self.find_hub_by_name(hub_pos.name)
-            # CHECK mypy
-            if isinstance(hub, parsing.MapParsing.Hub):
-                last_turn = len(hub.drones_by_time) - 1
-                if last_turn < (turn_at_dest - 1):
-                    # Init Hub
-                    for _ in range(last_turn, turn_at_dest):
-                        hub.drones_by_time.append([])
-                for count in range(turn_at_start, turn_at_dest):
-                    hub.drones_by_time[count].append(drone)
+                hub_dest.drones_by_time.append([])
+        hub_dest.drones_by_time[turn_at_dest].append(drone)
 
         # - Mettre a jour la presence du drone dans le hub actuel
         #   entre turn actuel et turn_at_dest
@@ -419,8 +411,8 @@ class DronesManager:
         self.add_drone_in_hub(
             drone,
             dest,
-            turn_at_connect,
             turn_at_dest,
+            last_turn_plan,
         )
 
         drone.drone_pos = dest.datas
@@ -445,6 +437,53 @@ class DronesManager:
 
         # Mettre dest.datas dans drone.travel_plan a turn_at_dest
 
+    def delete_drone_presence(
+        self,
+        drone: parsing.MapParsing.Drone,
+        hub: parsing.MapParsing.Hub,
+        connect: parsing.MapParsing.Connection | None,
+        turn_start: int,
+    ) -> None:
+        """Delete presence of Drone in hub and connect from turn_at_start"""
+        turn_end: int
+        count: int
+
+        # TEMPO
+        print(f"Supprime D{drone.id} dans {hub.datas.name}")
+
+        # Delete from hub
+        if isinstance(hub, parsing.MapParsing.Hub):
+            print(" CONDITION")
+            turn_end = len(hub.drones_by_time)
+            print(f"        BEFORE BOUCLE turn_start: {turn_start}  turn end: {turn_end}")
+            for count in range(turn_start, turn_end):
+                print(" BOUCLE")
+                if (
+                    isinstance(hub.drones_by_time[count], list)
+                    and drone in hub.drones_by_time[count]
+                ):
+                    print(" CONDITION BOUCLE")
+                    hub.drones_by_time[count].remove(drone)
+
+        # Delete from Connection
+        if isinstance(connect, parsing.MapParsing.Connection):
+            turn_end = len(connect.drones_in_connect)
+            for count in range(turn_start, turn_end):
+                if (
+                    isinstance(connect.drones_in_connect[count], list)
+                    and drone in connect.drones_in_connect[count]
+                ):
+                    connect.drones_in_connect[count].remove(drone)
+
+    #TEMPO
+    def state_of_hubs(self):
+        for hub in self.hub_list:
+            print(f"{hub.datas.name}:")
+            for drone in hub.drones_by_time:
+                if isinstance(drone, list):
+                    for dronedrone in drone:
+                        print(f"    D{dronedrone.id}")
+
     def find_best_path(self, drone: parsing.MapParsing.Drone) -> bool:
         #     """Find Best Path for One Drone Recursivly"""
         travel_plan: list[
@@ -468,7 +507,6 @@ class DronesManager:
         connection: parsing.MapParsing.Connection
         turn: int
         turn_at_dest: int
-        interm_turn: int
 
         # Save state
         turn = len(drone.travel_plan)
@@ -489,6 +527,7 @@ class DronesManager:
             if (
                 drone.best_travel_plan is None
                 or drone.best_travel_plan == []
+                or len(drone.best_travel_plan) == 0
                 or len(drone.travel_plan) < len(drone.best_travel_plan)
             ):
                 drone.best_travel_plan = list(drone.travel_plan)
@@ -499,31 +538,32 @@ class DronesManager:
                 if dest.datas in hubs_visited:
                     continue
 
-                # TEMPO
-                # print(
-                #     f"\nTurn: {len(drone.travel_plan)} "
-                #     f"Turn de turn: {turn} "
-                #     f"drone: D{drone.id}, "
-                #     f"Position: {drone.drone_pos.name} "
-                #     f"Destination: {dest.datas.name}, type: {dest.metas.zone_type}"
-                # )
-
                 hubs_visited.append(dest.datas)
 
                 turn_at_dest = self.allow_time(connection, dest, turn)
 
                 self.drone_to_dest(drone, dest, connection, turn_at_dest)
 
-                # TEMPO
-                # print(f"Turn apres drone_to_dest: {len(drone.travel_plan)}")
-
                 self.find_best_path(drone)
 
-                # Reload Datas
-                drone.drone_pos = drone_pos
+                # # TEMPO
+                # print(f"BEFORE MAJ, tour: {turn} done: D{drone.id}")
+                # self.state_of_hubs()
+
+                # Reload Datas Before Move
+                self.delete_drone_presence(
+                    drone, drone_pos, connection, (len(travel_plan))
+                )
+                self.delete_drone_presence(drone, dest, None, len(travel_plan))
+                drone.drone_pos = drone_pos.datas
                 drone.travel_plan = travel_plan
 
+                # TEMPO
+                print(f"AFTER MAJ, tour: {turn} done: D{drone.id}")
+                self.state_of_hubs()
+
         # GERER LES MISES A JOURS LORS DU RETOUR EN ARRIERE DES DRONES
+        # GERER LA PRESENCE DANS UN HUB D'UN DRONE QUI NE BOUGE PAS
 
         #       - Sauvegarde etat actuel en local:
         #               - nbr de tours
@@ -552,7 +592,54 @@ class DronesManager:
         if drone.best_travel_plan is None or drone.best_travel_plan == []:
             return False
 
+        # self.update_datas_drone_travel(drone)
+
         return True
+
+    def update_datas_drone_travel(
+        self, drone: parsing.MapParsing.Drone
+    ) -> None:
+        """Update datas of Hubs and Connects by Drone Travel"""
+        area: (
+            parsing.MapParsing.Hub.HubData
+            | parsing.MapParsing.Connection
+            | None
+        )
+
+        hub_before: parsing.MapParsing.Hub | None
+        hub: parsing.MapParsing.Hub | None
+        connect: parsing.MapParsing.Connection
+        n: int = 0
+
+        _, _, hub_before = self.find_hub_by_type("start_hub")
+        for area in drone.best_travel_plan:
+            if isinstance(area, parsing.MapParsing.Hub.HubData):
+                _, _, hub = self.find_hub_by_name(area.name)
+                while len(hub.drones_by_time) < (n + 1):
+                    hub.drones_by_time.append(None)
+                if hub.drones_by_time[n] is None:
+                    hub.drones_by_time[n] = []
+                hub.drones_by_time[n].append(drone)
+                if (
+                    hub.metas.zone_type != "restricted"
+                    and hub.datas.type != "start_hub"
+                ):
+                    connect = self.find_connect(hub_before, hub)
+                    self.add_drone_in_connect(drone, connect, n)
+                hub_before = hub
+
+            elif hub is not None:
+                while len(hub.drones_by_time) < (n + 1):
+                    hub.drones_by_time.append(None)
+                if hub.drones_by_time[n] is None:
+                    hub.drones_by_time[n] = []
+                hub.drones_by_time[n].append(drone)
+
+            elif isinstance(area, parsing.MapParsing.Connection):
+                self.add_drone_in_connect(drone, area, n)
+                hub = None
+
+            n += 1
 
     def backtracking_algo(self) -> None:
         """Define Best travel for Every Drone of the Map"""
@@ -583,6 +670,8 @@ class DronesManager:
                 self.nb_turn = len(drone.best_travel_plan)
 
             # self.update_hubs_connections(drone)
+            # self.update_datas_drone_travel(drone)
+            # self.update_datas_drone_travel(drone)
 
     def drones_manager(self) -> None:
         """Manage Drones Movements"""

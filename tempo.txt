@@ -70,7 +70,7 @@ class DatasType(str, Enum):
         start_hub = "start_hub"
         end_hub = "end_hub"
         hub = "hub"
-        connection = "connection"
+        connection = "clist_dronesonnection"
         
 class HubMetaZone(str, Enum):
             normal = "normal"

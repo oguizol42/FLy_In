@@ -47,10 +47,20 @@ def main() -> None:
     try:
         # map: Drone_Map = Drone_Map("maps_test/01_linear_path.txt")
         # map: Drone_Map = Drone_Map("maps_test/01_linear_path_8_drones.txt")
+        # map: Drone_Map = Drone_Map("maps_test/02_simple_fork.txt")
+
         # map: Drone_Map = Drone_Map("maps/easy/01_linear_path.txt")
-        map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
+        map: Drone_Map = Drone_Map("maps/easy/02_simple_fork.txt")
+        # map: Drone_Map = Drone_Map("maps/easy/03_basic_capacity.txt")
+
+        # map: Drone_Map = Drone_Map("maps/medium/01_dead_end_trap.txt")
+        # map: Drone_Map = Drone_Map("maps/medium/02_circular_loop.txt")
+        # map: Drone_Map = Drone_Map("maps/medium/03_priority_puzzle.txt")
+
+        # map: Drone_Map = Drone_Map("maps/hard/01_maze_nightmare.txt")
         # map: Drone_Map = Drone_Map("maps/hard/02_capacity_hell.txt")
         # map: Drone_Map = Drone_Map("maps/hard/03_ultimate_challenge.txt")
+
         # map: Drone_Map = Drone_Map(
         #     "maps/challenger/01_the_impossible_dream.txt"
         # )
@@ -60,6 +70,9 @@ def main() -> None:
         # map.display_map_datas()
         map.drones_manager()
         # map.display_main_datas()
+
+        print(f"Nombre de drones: {len(map.drone_list)}")
+
         map.displaying_simulation()
         map.calcul_map_size()
         map.displaying_map()

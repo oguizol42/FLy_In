@@ -373,6 +373,7 @@ class Displaying:
         print("\nSIMULATION:\n")  # TEMPO
         for n in range(1, self.nb_turn):
             print(f"tour {n}")  # TEMPO
+
             for drone in self.drone_list:
                 if (
                     drone.travel_plan is not None
