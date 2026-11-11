@@ -50,7 +50,7 @@ def main() -> None:
         # map: Drone_Map = Drone_Map("maps_test/02_simple_fork.txt")
 
         # map: Drone_Map = Drone_Map("maps/easy/01_linear_path.txt")
-        map: Drone_Map = Drone_Map("maps/easy/02_simple_fork.txt")
+        # map: Drone_Map = Drone_Map("maps/easy/02_simple_fork.txt")
         # map: Drone_Map = Drone_Map("maps/easy/03_basic_capacity.txt")
 
         # map: Drone_Map = Drone_Map("maps/medium/01_dead_end_trap.txt")
@@ -61,9 +61,9 @@ def main() -> None:
         # map: Drone_Map = Drone_Map("maps/hard/02_capacity_hell.txt")
         # map: Drone_Map = Drone_Map("maps/hard/03_ultimate_challenge.txt")
 
-        # map: Drone_Map = Drone_Map(
-        #     "maps/challenger/01_the_impossible_dream.txt"
-        # )
+        map: Drone_Map = Drone_Map(
+            "maps/challenger/01_the_impossible_dream.txt"
+        )
 
         map.loading_map()
         map.map_parsing()

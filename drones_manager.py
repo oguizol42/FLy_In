@@ -448,21 +448,14 @@ class DronesManager:
         turn_end: int
         count: int
 
-        # TEMPO
-        print(f"Supprime D{drone.id} dans {hub.datas.name}")
-
         # Delete from hub
         if isinstance(hub, parsing.MapParsing.Hub):
-            print(" CONDITION")
             turn_end = len(hub.drones_by_time)
-            print(f"        BEFORE BOUCLE turn_start: {turn_start}  turn end: {turn_end}")
             for count in range(turn_start, turn_end):
-                print(" BOUCLE")
                 if (
                     isinstance(hub.drones_by_time[count], list)
                     and drone in hub.drones_by_time[count]
                 ):
-                    print(" CONDITION BOUCLE")
                     hub.drones_by_time[count].remove(drone)
 
         # Delete from Connection
@@ -546,21 +539,12 @@ class DronesManager:
 
                 self.find_best_path(drone)
 
-                # # TEMPO
-                # print(f"BEFORE MAJ, tour: {turn} done: D{drone.id}")
-                # self.state_of_hubs()
-
-                # Reload Datas Before Move
                 self.delete_drone_presence(
                     drone, drone_pos, connection, (len(travel_plan))
                 )
                 self.delete_drone_presence(drone, dest, None, len(travel_plan))
                 drone.drone_pos = drone_pos.datas
-                drone.travel_plan = travel_plan
-
-                # TEMPO
-                print(f"AFTER MAJ, tour: {turn} done: D{drone.id}")
-                self.state_of_hubs()
+                drone.travel_plan = list(travel_plan)
 
         # GERER LES MISES A JOURS LORS DU RETOUR EN ARRIERE DES DRONES
         # GERER LA PRESENCE DANS UN HUB D'UN DRONE QUI NE BOUGE PAS
@@ -671,7 +655,7 @@ class DronesManager:
 
             # self.update_hubs_connections(drone)
             # self.update_datas_drone_travel(drone)
-            # self.update_datas_drone_travel(drone)
+            self.update_datas_drone_travel(drone)
 
     def drones_manager(self) -> None:
         """Manage Drones Movements"""
