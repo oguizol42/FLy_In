@@ -196,7 +196,7 @@ class MapParsing:
             """Check hub and create list of hubs"""
             self.datas = self.check_hub_datas(line, type)
             self.metas = self.check_hub_metas(line)
-            if type == "start_hub":
+            if type == "start_hub" or type == "end_hub":
                 self.datas.nb_drones = self.map.nb_drones
             self.map.hub_list.append(self)
 
@@ -492,6 +492,10 @@ class MapParsing:
         self.create_connection_list()
         self.create_drone_list()
         self.init_neighboring_hubs()
+
+        for hub in self.hub_list:
+            if hub.datas.type == "start_hub" or hub.datas.type == "end_hub":
+                hub.metas.max_drones = self.nb_drones
 
 
 # Modifier affichage des donnees dans le terminal pour etre conforme au sujet
