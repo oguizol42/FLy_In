@@ -385,7 +385,10 @@ class Displaying:
                         if isinstance(area, parsing.MapParsing.Hub.HubData):
                             print(f"D{drone.id}-{area.name} ", end="")
                         elif isinstance(area, parsing.MapParsing.Connection):
-                            print(f"D{drone.id}-restrictedConn ", end="")
+                            print(
+                                f"D{drone.id}-{area.hub1.name}"
+                                f"-{area.hub2.name} ", end=""
+                                )
             print("\n")
 
         # • The simulation must output the step-by-step movement of drones

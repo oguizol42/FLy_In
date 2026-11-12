@@ -496,7 +496,3 @@ class MapParsing:
         for hub in self.hub_list:
             if hub.datas.type == "start_hub" or hub.datas.type == "end_hub":
                 hub.metas.max_drones = self.nb_drones
-
-
-# Modifier affichage des donnees dans le terminal pour etre conforme au sujet
-# Revoir neighboring_hubs neighboring_hubs_forbiden pour etre defini uniquement sur des hubs et pas des connections

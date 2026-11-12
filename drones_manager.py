@@ -178,7 +178,9 @@ class DronesManager:
     #             if drone.id == 7 and turn == 5:
     #                 print(f"DELETE D7 - Connection {id(connect)}")
     #             # drone_list.remove(drone)
-    #             self.safe_remove(drone_list, drone, f"Connection, tour {turn}")
+    #             self.safe_remove(
+    #                   drone_list, drone, f"Connection, tour {turn}"
+    #            )
 
     #     # Delete of travel_plan
     #     drone.travel_plan.remove(drone_pos)
@@ -221,44 +223,6 @@ class DronesManager:
 
         # Delete of travel_plan
         drone.travel_plan.remove(drone_pos)
-
-    def update_hubs_connections(self, drone: parsing.MapParsing.Drone) -> None:
-        """Update Moves Drone in Every Hubs and Connections"""
-        turn: int
-        hub: parsing.MapParsing.Hub | None
-        connection: parsing.MapParsing.Connection
-        last_pos: parsing.MapParsing.Hub | None
-
-        dest: (
-            parsing.MapParsing.Hub.HubData
-            | parsing.MapParsing.Connection
-            | None
-        )
-
-        _, _, last_pos = self.find_hub_by_type("start_hub")
-
-        for turn in range(1, len(drone.best_travel_plan)):
-            dest = drone.best_travel_plan[turn]
-
-            if dest is None and isinstance(last_pos, parsing.MapParsing.Hub):
-                # Add Drone in present Hub for Turn without Move
-                self.add_drone_in_hub(drone, last_pos, turn)
-
-            elif isinstance(
-                dest, parsing.MapParsing.Hub.HubData
-            ) and isinstance(last_pos, parsing.MapParsing.Hub):
-                _, _, hub = self.find_hub_by_name(dest.name)
-
-                # CHECK mypy
-                if isinstance(hub, parsing.MapParsing.Hub):
-                    self.add_drone_in_hub(drone, hub, turn)
-                    connection = self.find_connect(hub, last_pos)
-                last_pos = hub
-                self.add_drone_in_connect(drone, connection, turn)
-
-            elif isinstance(dest, parsing.MapParsing.Connection):
-                connection = dest
-                self.add_drone_in_connect(drone, connection, turn)
 
     def allow_time(
         self,
@@ -313,10 +277,13 @@ class DronesManager:
         #   => turn_at_dest = turn_at_dest + 1
 
         # si len(desti.drones_by_time) > turn_at_dest
-        # si la destination compte au moins le meme nombre de tour qu'au start_time:
-        #   - incremente turn_at_dest jusqu'a trouver un tour ou desti est libre:
+        # si la destination compte au moins
+        # le meme nombre de tour qu'au start_time:
+        #   - incremente turn_at_dest jusqu'a trouver
+        #     un tour ou desti est libre:
         #           - si place restante suffisente pour placer un nouveau drone
-        #           - si connection libre a cet instant ou a l'instant d'avant si desti est restricted
+        #           - si connection libre a cet instant
+        #             ou a l'instant d'avant si desti est restricted
 
     def add_drone_in_connect(
         self,
@@ -350,10 +317,11 @@ class DronesManager:
     ) -> None:
         """Add Drone In Hubs concerning by a Move"""
 
-        hub_start: parsing.MapParsing.Hub
+        hub_start: parsing.MapParsing.Hub | None
         last_turn: int
         turn_update: int
         count: int
+        drone_list: Optional[list[parsing.MapParsing.Drone]]
 
         turn_update = turn_at_dest
         if hub_dest.metas.zone_type == "restricted":
@@ -362,19 +330,27 @@ class DronesManager:
         # Update Drone list in hub_start before moving
         if isinstance(drone.drone_pos, parsing.MapParsing.Hub.HubData):
             _, _, hub_start = self.find_hub_by_name(drone.drone_pos.name)
-            last_turn = len(hub_start.drones_by_time) - 1
-            if last_turn < (turn_at_dest - 1):
-                for _ in range(last_turn, (turn_at_dest - 1)):
-                    hub_start.drones_by_time.append([])
-            for count in range((turn_at_start + 1), turn_update):
-                hub_start.drones_by_time[count].append(drone)
+            # CHECK mypy
+            if isinstance(hub_start, parsing.MapParsing.Hub):
+                last_turn = len(hub_start.drones_by_time) - 1
+                if last_turn < (turn_at_dest - 1):
+                    for _ in range(last_turn, (turn_at_dest - 1)):
+                        hub_start.drones_by_time.append([])
+                for count in range((turn_at_start + 1), turn_update):
+                    # CHECK mypy
+                    drone_list = hub_start.drones_by_time[count]
+                    if isinstance(drone_list, list):
+                        drone_list.append(drone)
 
         # Update Drone list in hub_dest
         last_turn = len(hub_dest.drones_by_time) - 1
         if last_turn < (turn_at_dest):
             for _ in range(last_turn, turn_at_dest):
                 hub_dest.drones_by_time.append([])
-        hub_dest.drones_by_time[turn_at_dest].append(drone)
+        # CHECK mypy
+        drone_list = hub_dest.drones_by_time[turn_at_dest]
+        if isinstance(drone_list, list):
+            drone_list.append(drone)
 
         # - Mettre a jour la presence du drone dans le hub actuel
         #   entre turn actuel et turn_at_dest
@@ -447,35 +423,29 @@ class DronesManager:
         """Delete presence of Drone in hub and connect from turn_at_start"""
         turn_end: int
         count: int
+        drone_list: Optional[list[parsing.MapParsing.Drone]]
 
         # Delete from hub
         if isinstance(hub, parsing.MapParsing.Hub):
             turn_end = len(hub.drones_by_time)
             for count in range(turn_start, turn_end):
+                drone_list = hub.drones_by_time[count]
                 if (
-                    isinstance(hub.drones_by_time[count], list)
-                    and drone in hub.drones_by_time[count]
+                    isinstance(drone_list, list)
+                    and drone in drone_list
                 ):
-                    hub.drones_by_time[count].remove(drone)
+                    drone_list.remove(drone)
 
         # Delete from Connection
         if isinstance(connect, parsing.MapParsing.Connection):
             turn_end = len(connect.drones_in_connect)
             for count in range(turn_start, turn_end):
+                drone_list = connect.drones_in_connect[count]
                 if (
-                    isinstance(connect.drones_in_connect[count], list)
-                    and drone in connect.drones_in_connect[count]
+                    isinstance(drone_list, list)
+                    and drone in drone_list
                 ):
-                    connect.drones_in_connect[count].remove(drone)
-
-    #TEMPO
-    def state_of_hubs(self):
-        for hub in self.hub_list:
-            print(f"{hub.datas.name}:")
-            for drone in hub.drones_by_time:
-                if isinstance(drone, list):
-                    for dronedrone in drone:
-                        print(f"    D{dronedrone.id}")
+                    drone_list.remove(drone)
 
     def find_best_path(self, drone: parsing.MapParsing.Drone) -> bool:
         #     """Find Best Path for One Drone Recursivly"""
@@ -539,11 +509,16 @@ class DronesManager:
 
                 self.find_best_path(drone)
 
-                self.delete_drone_presence(
-                    drone, drone_pos, connection, (len(travel_plan))
-                )
-                self.delete_drone_presence(drone, dest, None, len(travel_plan))
-                drone.drone_pos = drone_pos.datas
+                # CHECK mypy
+                if isinstance(drone_pos, parsing.MapParsing.Hub):
+                    self.delete_drone_presence(
+                        drone, drone_pos, connection, (len(travel_plan))
+                    )
+                    self.delete_drone_presence(
+                        drone, dest, None, len(travel_plan)
+                        )
+
+                    drone.drone_pos = drone_pos.datas
                 drone.travel_plan = list(travel_plan)
 
         # GERER LES MISES A JOURS LORS DU RETOUR EN ARRIERE DES DRONES
@@ -555,7 +530,8 @@ class DronesManager:
         #               - travel plan
 
         # Si pos Drone == end_hub:
-        #   => si drone.best_travel_plan vide ou plus grand que drone.travel_plan
+        #   => si drone.best_travel_plan vide ou
+        #      plus grand que drone.travel_plan
         #           => copie drone.travel_plan dans drone.best_travel_plan
         #      Replace drone un hub en arriere
 
@@ -563,10 +539,12 @@ class DronesManager:
         #   => Boucle jusqu'a exploration de tous les voisins:
         #       - Determine le prochain hub en examinant
         #         tout ce qui a deja ete exploré depuis cette recusivitee
-        #       - Sauvegarde ce nouveau deplacement en local dans la liste des hubs visites
+        #       - Sauvegarde ce nouveau deplacement en local
+        #         dans la liste des hubs visites
         #       - Compte le nombre de tour jusqu'a ce que le hub soit libre
         #         (en prenant en compte si c'est une restricted zone)
-        #       - Deplace le drone sur le nouveau hub (en prenant en compte si c'est une restricted zone)
+        #       - Deplace le drone sur le nouveau hub
+        #         (en prenant en compte si c'est une restricted zone)
         #       - find_best_path sur la prochaine destination
         #       - retablie l'etat de depart de la boucle au niveau:
         #               - nbr de tours
@@ -590,6 +568,7 @@ class DronesManager:
             | None
         )
 
+        drone_list: Optional[list[parsing.MapParsing.Drone]]
         hub_before: parsing.MapParsing.Hub | None
         hub: parsing.MapParsing.Hub | None
         connect: parsing.MapParsing.Connection
@@ -599,25 +578,43 @@ class DronesManager:
         for area in drone.best_travel_plan:
             if isinstance(area, parsing.MapParsing.Hub.HubData):
                 _, _, hub = self.find_hub_by_name(area.name)
-                while len(hub.drones_by_time) < (n + 1):
-                    hub.drones_by_time.append(None)
-                if hub.drones_by_time[n] is None:
-                    hub.drones_by_time[n] = []
-                hub.drones_by_time[n].append(drone)
+                # CHECK mypy
                 if (
-                    hub.metas.zone_type != "restricted"
-                    and hub.datas.type != "start_hub"
+                    isinstance(hub, parsing.MapParsing.Hub)
+                    and isinstance(hub.drones_by_time[n], list)
                 ):
-                    connect = self.find_connect(hub_before, hub)
-                    self.add_drone_in_connect(drone, connect, n)
+                    while len(hub.drones_by_time) < (n + 1):
+                        hub.drones_by_time.append(None)
+                    drone_list = hub.drones_by_time[n]
+                    if drone_list is None:
+                        drone_list = []
+                    # CHECK mypy
+                    if (
+                            isinstance(drone_list, list)
+                    ):
+                        drone_list.append(drone)
+                # CHECK mypy
+                if (
+                    isinstance(hub_before, parsing.MapParsing.Hub)
+                    and isinstance(hub, parsing.MapParsing.Hub)
+                ):
+                    if (
+                        hub.metas.zone_type != "restricted"
+                        and hub.datas.type != "start_hub"
+                    ):
+                        connect = self.find_connect(hub_before, hub)
+                        self.add_drone_in_connect(drone, connect, n)
                 hub_before = hub
 
             elif hub is not None:
                 while len(hub.drones_by_time) < (n + 1):
                     hub.drones_by_time.append(None)
-                if hub.drones_by_time[n] is None:
-                    hub.drones_by_time[n] = []
-                hub.drones_by_time[n].append(drone)
+                drone_list = hub.drones_by_time[n]
+                if drone_list is None:
+                    drone_list = []
+                # CHECK mypy
+                if isinstance(drone_list, list):
+                    drone_list.append(drone)
 
             elif isinstance(area, parsing.MapParsing.Connection):
                 self.add_drone_in_connect(drone, area, n)
@@ -647,14 +644,10 @@ class DronesManager:
             if self.find_best_path(drone) is False:
                 raise ValueError("There is not path to end_hub")
 
-            # Mise a jour du nombre de tour:
-            #   => si taille de drone.best_travel_plan > self.nb_turn
-            #       self.nb_turn = drone.travel_plan
+            # Update quantity of turns:
             if len(drone.best_travel_plan) > self.nb_turn:
                 self.nb_turn = len(drone.best_travel_plan)
 
-            # self.update_hubs_connections(drone)
-            # self.update_datas_drone_travel(drone)
             self.update_datas_drone_travel(drone)
 
     def drones_manager(self) -> None:
