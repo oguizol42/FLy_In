@@ -83,26 +83,6 @@ class DronesManager:
                     hub.neighboring_hubs.append(hub_connection)
                 hub.neighboring_hubs_forbiden = hubs_blocked
 
-        # 2/ parcours tous les hubs et trie neighboring_hubs:
-        #   par priorite de zone a parcourir
-        #   vide la liste des voisins de end_hub
-        #   dans tous les hub enleve start_hub
-        #   1-end_hub 2-hubs priority 3-hubs normal
-        #   4-hubs restricted 5-hubs blocked
-        # Sort neighboring_hubs of every hubs in order of priority
-
-    # def recov_next_hub(
-    #     self,
-    #     drone_pos: parsing.MapParsing.Hub.HubData,
-    #     hub_visited: list[parsing.MapParsing.Hub.HubData],
-    # ) -> Optional[parsing.MapParsing.Hub]:
-    #     """Recovery Drone to Next Hub"""
-    #     hub: parsing.MapParsing.Hub
-    #     for hub in drone_pos.neighboring_hubs:
-    #         if hub not in hub_visited:
-    #             return hub
-    #     return None
-
     def find_connect(
         self, hub1: parsing.MapParsing.Hub, hub2: parsing.MapParsing.Hub
     ) -> parsing.MapParsing.Connection:
@@ -118,72 +98,6 @@ class DronesManager:
             f"Invalid Connection between {hub1.datas.name} "
             f"and {hub2.datas.name}"
         )
-
-    # def delete_last_drone_move(
-    #     self,
-    #     drone: parsing.MapParsing.Drone,
-    #     connect: parsing.MapParsing.Connection,
-    # ) -> None:
-    #     """Delete Move of Drone at a turn"""
-    #     turn: int = len(drone.travel_plan) - 1
-    #     drone_pos: (
-    #         parsing.MapParsing.Hub.HubData | parsing.MapParsing.Connection
-    #     )
-    #     hub: parsing.MapParsing.Hub | None
-
-    #     drone_list: Optional[list[parsing.MapParsing.Drone]]
-
-    #     drone_pos = drone.drone_pos
-
-    #     # Delete of Hub
-    #     if isinstance(drone_pos, parsing.MapParsing.Hub.HubData):
-    #         _, _, hub = self.find_hub_by_name(drone_pos.name)
-    #         # CHECK mypy
-    #         if (
-    #             isinstance(hub, parsing.MapParsing.Hub)
-    #             and len(hub.drones_by_time) > turn
-    #         ):
-    #             drone_list = hub.drones_by_time[turn]
-    #             if isinstance(drone_list, list):
-
-    #                 # TEMPO
-    #                 if drone.id == 7 and turn == 5:
-    #                     print(f"DELETE D7 - Connection {id(connect)}")
-    #                 # drone_list.remove(drone)
-    #                 self.safe_remove(
-    #                     drone_list, drone, f"Connection, tour {turn}"
-    #                 )
-    #         # TEMPO
-    #         if drone.id == 7 and turn == 5:
-    #             print(
-    #                 f"PARAMETRE : {id(connect)} | "
-    #                 f"POSITION : {id(drone_pos)}"
-    #             )
-    #     else:
-
-    #         # TEMPO
-    #         print(
-    #             f"AVANT : {id(connect)} | "
-    #             f"APRES : {id(drone_pos)}"
-    #         )
-
-    #         connect = drone_pos
-
-    #     # Delete of Connection
-    #     if len(connect.drones_in_connect) > turn:
-    #         drone_list = connect.drones_in_connect[turn]
-    #         if isinstance(drone_list, list):
-
-    #             # TEMPO
-    #             if drone.id == 7 and turn == 5:
-    #                 print(f"DELETE D7 - Connection {id(connect)}")
-    #             # drone_list.remove(drone)
-    #             self.safe_remove(
-    #                   drone_list, drone, f"Connection, tour {turn}"
-    #            )
-
-    #     # Delete of travel_plan
-    #     drone.travel_plan.remove(drone_pos)
 
     def delete_last_drone_move(
         self,
@@ -273,18 +187,6 @@ class DronesManager:
 
         return turn_at_dest
 
-        # si desti est de type restricted
-        #   => turn_at_dest = turn_at_dest + 1
-
-        # si len(desti.drones_by_time) > turn_at_dest
-        # si la destination compte au moins
-        # le meme nombre de tour qu'au start_time:
-        #   - incremente turn_at_dest jusqu'a trouver
-        #     un tour ou desti est libre:
-        #           - si place restante suffisente pour placer un nouveau drone
-        #           - si connection libre a cet instant
-        #             ou a l'instant d'avant si desti est restricted
-
     def add_drone_in_connect(
         self,
         drone: parsing.MapParsing.Drone,
@@ -352,10 +254,6 @@ class DronesManager:
         if isinstance(drone_list, list):
             drone_list.append(drone)
 
-        # - Mettre a jour la presence du drone dans le hub actuel
-        #   entre turn actuel et turn_at_dest
-        # - Mettre le drone dans dest a turn_at_dest
-
     def drone_to_dest(
         self,
         drone: parsing.MapParsing.Drone,
@@ -399,19 +297,6 @@ class DronesManager:
             for _ in range(last_turn, turn_at_dest):
                 drone.travel_plan.append(None)
         drone.travel_plan[turn_at_dest] = dest.datas
-
-        # Mettre des None dans drone.best_travel_plan entre
-        # le tour actuel et le turn_at_dest inculs
-
-        # Si dest est restricted zone:
-        #   => turn_at_connect = turn_at_dest - 1
-        #   => Mettre connect dans drone.travel_plan a turn_at_connect
-
-        # Mettre le drone dans connect a turn_at_connect
-
-        # Mettre le dronnes dans les hubs: add_drone_in_hub
-
-        # Mettre dest.datas dans drone.travel_plan a turn_at_dest
 
     def delete_drone_presence(
         self,
@@ -520,41 +405,8 @@ class DronesManager:
 
                     drone.drone_pos = drone_pos.datas
                 drone.travel_plan = list(travel_plan)
-
-        # GERER LES MISES A JOURS LORS DU RETOUR EN ARRIERE DES DRONES
-        # GERER LA PRESENCE DANS UN HUB D'UN DRONE QUI NE BOUGE PAS
-
-        #       - Sauvegarde etat actuel en local:
-        #               - nbr de tours
-        #               - position
-        #               - travel plan
-
-        # Si pos Drone == end_hub:
-        #   => si drone.best_travel_plan vide ou
-        #      plus grand que drone.travel_plan
-        #           => copie drone.travel_plan dans drone.best_travel_plan
-        #      Replace drone un hub en arriere
-
-        # Sinon:
-        #   => Boucle jusqu'a exploration de tous les voisins:
-        #       - Determine le prochain hub en examinant
-        #         tout ce qui a deja ete exploré depuis cette recusivitee
-        #       - Sauvegarde ce nouveau deplacement en local
-        #         dans la liste des hubs visites
-        #       - Compte le nombre de tour jusqu'a ce que le hub soit libre
-        #         (en prenant en compte si c'est une restricted zone)
-        #       - Deplace le drone sur le nouveau hub
-        #         (en prenant en compte si c'est une restricted zone)
-        #       - find_best_path sur la prochaine destination
-        #       - retablie l'etat de depart de la boucle au niveau:
-        #               - nbr de tours
-        #               - position
-        #               - travel plan
-        #
         if drone.best_travel_plan is None or drone.best_travel_plan == []:
             return False
-
-        # self.update_datas_drone_travel(drone)
 
         return True
 
@@ -628,14 +480,7 @@ class DronesManager:
         start_hub: parsing.MapParsing.Hub | None
 
         _, _, start_hub = self.find_hub_by_type("start_hub")
-        # Test tous les chemins possibles de start a end en conservant
-        # le meilleurs a chaque fois
-
-        # Boucle sur tous les drones
         for drone in self.drone_list:
-            #   Boucle sur tous les itineraires recursivement
-            #   en sauvegardant toujours le plus court
-
             # check mypy
             # Initialising travel_plan of Drone
             if isinstance(start_hub, parsing.MapParsing.Hub):
@@ -655,36 +500,4 @@ class DronesManager:
 
         self.sort_hubs_neighbours()
 
-        print("ALGORYTHM:\n")  # TEMPO
-
-        # self.dijkstra_algorythm()
-
         self.backtracking_algo()
-
-
-# Zone types:
-#     ◦ normal – Standard zone with 1 turn movement cost (default)
-#     ◦ blocked – Inaccessible zone. Drones must not enter
-#       or pass through this zone.
-#     Any path using it is invalid.
-#     ◦ restricted – A sensitive or dangerous zone.
-#       Movement to this zone costs 2 turns.
-#     ◦ priority – A preferred zone. Movement to this zone costs 1 turn
-#       but should be prioritized in pathfinding
-
-# 1/ Prend les drones par ordre de numero
-# 2/ Trouve le chemin le plus court en fonction de l'emplacement
-#    de tous les precedents dans le temps
-# 3/ Mise du journal de positionnement de tous les drones impliques
-#    (celui en court et les precedents)
-#    dans le temps (parsing.Drone.positioning_log)
-# 4/ Mise a jour du journal de deplacement en fonction de chaque tour
-#    (liste de liste de drones): self.travel_log
-# Le deplacement de tous les drones ne sera affiche qu'une fois boucle
-
-# self.drone_list: list[MapParsing.Drone] = []
-
-# class Drone(BaseModel):
-# 	id: int
-# 	hub_pos: "MapParsing.HubData | MapParsing.Connection"
-# 	positioning_log: list [int, "MapParsing.HubData | MapParsing.Connection"]

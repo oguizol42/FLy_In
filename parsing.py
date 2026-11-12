@@ -91,7 +91,7 @@ class MapParsing:
         class HubMeta(BaseModel):
             zone_type: str = Field(default="normal")
             color: Optional[str] = Field(default=None)
-            max_drones: int = Field(default=1, ge=0)
+            max_drones: int = Field(default=1, gt=0)
 
             @model_validator(mode="after")
             def hub_meta_validation(self) -> "MapParsing.Hub.HubMeta":
@@ -227,7 +227,7 @@ class MapParsing:
         #     default_factory="MapParsing._default_drones"
         # )
 
-        max_drones_allow: int = Field(default=1, ge=0)
+        max_drones_allow: int = Field(default=1, gt=0)
 
         @model_validator(mode="after")
         def Connection(self) -> "MapParsing.Connection":

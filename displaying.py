@@ -200,9 +200,6 @@ class Displaying:
 
         # Determine coord start and end of the map
         for hub in self.hub_list:
-            # print(
-            #     f"coord X: {hub[0].coordX}, coord Y: {hub[0].coordY}"
-            # )  # TEMPO
             if hub.datas.coordX < self.map_start_x:
                 self.map_start_x = hub.datas.coordX
             if hub.datas.coordY < self.map_start_y:
@@ -211,18 +208,12 @@ class Displaying:
                 self.map_end_x = hub.datas.coordX
             if hub.datas.coordY > self.map_end_y:
                 self.map_end_y = hub.datas.coordY
-        # print(f"Map Start: [{self.map_start_x},{self.map_start_y}]")  # TEMPO
-        # print(f"Map End: [{self.map_end_x},{self.map_end_y}]")  # TEMPO
 
         # Calcul offset with coord [0,0] if negative coord
         if self.map_start_x < 0:
             self.map_offsetX = self.map_start_x * -1
         if self.map_start_y < 0:
             self.map_offsetY = self.map_start_y * -1
-        # print(
-        #     f"Map Offset X: {self.map_offsetX}, "
-        #     f"Map Offset Y: {self.map_offsetY}"
-        # )  # TEMPO
 
         # Calcul size of the map:
         self.map_size_x = self.map_end_x - self.map_start_x + 1
@@ -238,9 +229,6 @@ class Displaying:
             - self.space_hubs_Y
             + (self.space_board_Y * 2)
         )
-        # print(
-        #     f"Map Size X: {self.map_size_x}, Map Size Y: {self.map_size_y}"
-        # )  # TEMPO
 
     def calcul_real_pos(
         self, hub: parsing.MapParsing.Hub.HubData
@@ -274,7 +262,7 @@ class Displaying:
 
         # Creat window
         window = pygame.display.set_mode((self.map_size_x, self.map_size_y))
-        pygame.display.set_caption("My super MAP !!!!!!!!!!")
+        pygame.display.set_caption("GRAPHICAL MAP")
 
         # main loop
         in_progress = True
@@ -370,10 +358,8 @@ class Displaying:
             parsing.MapParsing.Hub.HubData | parsing.MapParsing.Connection
         ]
 
-        print("\nSIMULATION:\n")  # TEMPO
         for n in range(1, self.nb_turn):
-            print(f"tour {n}")  # TEMPO
-
+            # print(f"Turn {n}: ", end="")
             for drone in self.drone_list:
                 if (
                     drone.travel_plan is not None
@@ -389,31 +375,4 @@ class Displaying:
                                 f"D{drone.id}-{area.hub1.name}"
                                 f"-{area.hub2.name} ", end=""
                                 )
-            print("\n")
-
-        # • The simulation must output the step-by-step movement of drones
-        #   from the start to the end zone.
-        # • Each simulation turn is represented by a line.
-        # • A line must list all the drone movements
-        #   that occur during that turn, space-
-        # separated. Each movement must follow the format:
-        #           D<ID>-<zone>, or D<ID>-<connection>
-        # in case of drones still in flight toward restricted zones.
-        #     ◦ D<ID> refers to the unique drone identifier (e.g., D1, D2).
-        #     ◦ <zone> is the name of the destination zone.
-        #     ◦ <connection> is the name of the connection toward
-        #       a restricted zone.
-        # • Drones that do not move in a given turn are omitted from that line.
-        # • Drones that reach the end zone are considered delivered
-        #   and are no longer tracked.
-        # • The simulation ends when all drones have reached the end zone.
-        # • Example:
-        #     D1-roof1 D2-corridorA
-        #     D1-roof2 D2-tunnelB
-        #     D1-goal D2-goal
-
-
-# Calcul de la taille de la fenetre de la map
-# Affichage de la map
-# Affichage chaque element
-# Gestion animation des elements dans la map
+            print("")

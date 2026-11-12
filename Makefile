@@ -1,14 +1,25 @@
-# it is strongly recommended to try –strict for enhanced checking):
-# • install: Install project dependencies using pip, uv, pipx, or any other package
-# manager of your choice.
-# • run: Execute the main script of your project (e.g., via Python interpreter).
-# • debug: Run the main script in debug mode using Python’s built-in debugger (e.g.,
-# pdb).
-# • clean: Remove temporary files or caches (e.g., __pycache__, .mypy_cache) to
-# keep the project environment clean.
-# 5
-# Fly-in Drones are interesting.
-# • lint: Execute the commands flake8 . and mypy . --warn-return-any
-# --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs
-# --check-untyped-defs
-# • lint-strict (optional): Execute the commands flake8 . and mypy . --strict
+UV = uv
+
+.PHONY: install run debug clean lint lint-strict
+
+install:
+	$(UV) sync
+
+run:
+	$(UV) run python fly_in.py
+
+debug:
+	$(UV) run python -m pdb fly_in.py
+
+clean:
+	find . -type d -name "__pycache__" -prune -exec rm -rf {} +
+	find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
+	rm -rf .mypy_cache .pytest_cache
+
+lint:
+	$(UV) run flake8 --exclude=.venv .
+	$(UV) run mypy . --exclude-gitignore --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+
+lint-strict:
+	$(UV) run flake8 --exclude=.venv .
+	$(UV) run mypy . --strict --exclude-gitignore
