@@ -1,3 +1,5 @@
+*This project has been created as part of the 42 curriculum by jbarthel, oguizol.*
+
 # Fly-in Drones
 
 *An object-oriented Python application designed to route multiple drones through a network of interconnected zones while respecting movement constraints and minimizing the total number of simulation turns.*
