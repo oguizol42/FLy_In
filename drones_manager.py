@@ -177,7 +177,7 @@ class DronesManager:
                     if (
                         list_drones is not None
                         and list_drones != []
-                        and len(list_drones) == desti.metas.max_drones
+                        and len(list_drones) == connect.max_drones_allow
                     ):
                         continue
 
