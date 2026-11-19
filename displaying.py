@@ -256,7 +256,21 @@ class Displaying:
         posY: int = 0
         posX2: int = 0
         posY2: int = 0
-        color: str = "yellow"
+        color: str
+        ring_color: str
+
+        rainbow: list[tuple[int, int, int]] = [
+            (255, 0, 0),      # red
+            (255, 165, 0),    # orange
+            (255, 255, 0),    # yellow
+            (0, 255, 0),      # green
+            (0, 0, 255),      # blu
+            (75, 0, 130),     # indigo
+            (148, 0, 211),  # violet
+        ]
+
+        ring_width: int = max(1, int(self.hub_size / 2 / len(rainbow)))
+        radius: float
 
         pygame.init()
 
@@ -293,43 +307,56 @@ class Displaying:
             # hub setup on screen
             for hub in self.hub_list:
                 posX, posY = self.calcul_real_pos(hub.datas)
+                color = "yellow"
 
                 # Display Hub
                 if hub.metas.color is not None:
                     color = hub.metas.color
-                    if color == "rainbow":
-                        color = "blue"
 
-                pygame.draw.circle(
-                    window,
-                    pygame.Color(color),
-                    (posX, posY),
-                    self.hub_size / 2,
-                )
+                if color == "rainbow":
+                    radius: float = self.hub_size / 2
+                    for ring_color in rainbow:
+                        pygame.draw.circle(
+                            window,
+                            pygame.Color(ring_color),
+                            (posX, posY),
+                            radius,
+                            ring_width,
+                        )
+                        radius -= ring_width
 
-                pygame.draw.circle(
-                    window,
-                    pygame.Color("red"),
-                    (posX, posY),
-                    self.hub_size / 2,
-                    9,
-                )
+                else:
 
-                pygame.draw.circle(
-                    window,
-                    pygame.Color("white"),
-                    (posX, posY),
-                    self.hub_size / 2,
-                    6,
-                )
+                    pygame.draw.circle(
+                        window,
+                        pygame.Color(color),
+                        (posX, posY),
+                        self.hub_size / 2,
+                    )
 
-                pygame.draw.circle(
-                    window,
-                    pygame.Color("blue"),
-                    (posX, posY),
-                    self.hub_size / 2,
-                    3,
-                )
+                    pygame.draw.circle(
+                        window,
+                        pygame.Color("red"),
+                        (posX, posY),
+                        self.hub_size / 2,
+                        9,
+                    )
+
+                    pygame.draw.circle(
+                        window,
+                        pygame.Color("white"),
+                        (posX, posY),
+                        self.hub_size / 2,
+                        6,
+                    )
+
+                    pygame.draw.circle(
+                        window,
+                        pygame.Color("blue"),
+                        (posX, posY),
+                        self.hub_size / 2,
+                        3,
+                    )
 
                 # Hub Name
                 police = pygame.font.Font(None, 20)
@@ -361,7 +388,7 @@ class Displaying:
         ]
 
         for n in range(1, self.nb_turn):
-            print(f"Turn {n}: ", end="")
+            # print(f"Turn {n}: ", end="")
             for drone in self.drone_list:
                 if (
                     drone.travel_plan is not None

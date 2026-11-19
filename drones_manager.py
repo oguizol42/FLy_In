@@ -474,6 +474,31 @@ class DronesManager:
 
             n += 1
 
+    def backtraking_algo_optimisation(self) -> None:
+        """Optimisation Algo for Complexs Map"""
+        # Check si le nombre de tours utiliser par le backtraking
+        # sur chaque drone est superieur aux nombres de tours effectue 
+        # lorsque tous les drones se suivent sur le parcours du 
+        # premier drone.
+        #   => si oui, se calque sur le parcours du premier drone
+
+        # Une optimisation plus pousse aurai consiste a tester a partir
+        # de quel moment l'algo sur chaque drone perd en optimisation
+        # puis a retablir l'algo sur les parcours preetablie en amont
+        drone: parsing.MapParsing.Drone
+
+        drone = self.drone_list[0]
+        nb_turn_line: int
+
+        nb_turn_line = len(drone.best_travel_plan) + self.nb_drones - 1
+        if nb_turn_line < self.nb_turn:
+            # print("Optimisation de l'algo")
+            pass
+        else:
+            # print("Algo de base")
+            pass
+
+
     def backtracking_algo(self) -> None:
         """Define Best travel for Every Drone of the Map"""
         drone: parsing.MapParsing.Drone
@@ -494,6 +519,8 @@ class DronesManager:
                 self.nb_turn = len(drone.best_travel_plan)
 
             self.update_datas_drone_travel(drone)
+
+        self.backtraking_algo_optimisation()
 
     def drones_manager(self) -> None:
         """Manage Drones Movements"""

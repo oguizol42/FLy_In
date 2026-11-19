@@ -220,12 +220,6 @@ class MapParsing:
         drones_in_connect: list[Optional[list["MapParsing.Drone"]]] = Field(
             default_factory=list
         )
-        # drones_in_connect: list[Optional[list["MapParsing.Drone"]]] = Field(
-        #     default_factory=lambda: [None]
-        # )
-        # drones_in_connect: list[Optional[list["MapParsing.Drone"]]] = Field(
-        #     default_factory="MapParsing._default_drones"
-        # )
 
         max_drones_allow: int = Field(default=1, gt=0)
 
