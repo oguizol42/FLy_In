@@ -257,7 +257,7 @@ class Displaying:
         posX2: int = 0
         posY2: int = 0
         color: str
-        ring_color: str
+        ring_color: tuple[int, int, int]
 
         rainbow: list[tuple[int, int, int]] = [
             (255, 0, 0),      # red
@@ -314,7 +314,7 @@ class Displaying:
                     color = hub.metas.color
 
                 if color == "rainbow":
-                    radius: float = self.hub_size / 2
+                    radius = self.hub_size / 2
                     for ring_color in rainbow:
                         pygame.draw.circle(
                             window,
