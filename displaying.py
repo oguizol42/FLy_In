@@ -388,7 +388,7 @@ class Displaying:
         ]
 
         for n in range(1, self.nb_turn):
-            # print(f"Turn {n}: ", end="")
+            print(f"Turn {n}: ", end="")
             for drone in self.drone_list:
                 if (
                     drone.travel_plan is not None

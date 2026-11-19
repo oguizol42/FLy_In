@@ -4,6 +4,7 @@ from typing import Optional
 
 class DronesManager:
     nb_turn: int
+    nb_drones: int
     hub_list: list[parsing.MapParsing.Hub]
     connection_list: list[parsing.MapParsing.Connection]
 
@@ -433,7 +434,6 @@ class DronesManager:
                 # CHECK mypy
                 if (
                     isinstance(hub, parsing.MapParsing.Hub)
-                    and isinstance(hub.drones_by_time[n], list)
                 ):
                     while len(hub.drones_by_time) < (n + 1):
                         hub.drones_by_time.append(None)
@@ -458,6 +458,10 @@ class DronesManager:
                         self.add_drone_in_connect(drone, connect, n)
                 hub_before = hub
 
+            elif isinstance(area, parsing.MapParsing.Connection):
+                self.add_drone_in_connect(drone, area, n)
+                hub = None
+
             elif hub is not None:
                 while len(hub.drones_by_time) < (n + 1):
                     hub.drones_by_time.append(None)
@@ -468,11 +472,46 @@ class DronesManager:
                 if isinstance(drone_list, list):
                     drone_list.append(drone)
 
-            elif isinstance(area, parsing.MapParsing.Connection):
-                self.add_drone_in_connect(drone, area, n)
-                hub = None
-
             n += 1
+
+    def reiinit_hubs(self) -> None:
+        """Initialise Every Hubs at Empty"""
+        hub: parsing.MapParsing.Hub
+
+        for hub in self.hub_list:
+            hub.drones_by_time = [None]
+            hub.datas.drones_in_hub = []
+
+            if hub.datas.type == "start_hub":
+                hub.datas.drones_in_hub.append(list(self.drone_list))
+                hub.drones_by_time[0] = list(self.drone_list)
+
+    def reiinit_connects(self) -> None:
+        """Initialise Every Connections at Empty"""
+        connect: parsing.MapParsing.Connection
+
+        for connect in self.connection_list:
+            connect.drones_in_connect = []
+            connect.drones_in_connect.append(None)
+
+    def reiinit_drones(self) -> None:
+        """Initialise Every Drones at Empty"""
+        drone: parsing.MapParsing.Drone
+        best_travel_plan: list[
+            Optional[parsing.MapParsing.Hub.HubData | parsing.MapParsing.Connection]
+        ]
+        self.nb_turn = 0
+
+        for drone in self.drone_list:
+            if drone is self.drone_list[0]:
+                best_travel_plan = list(drone.best_travel_plan)
+            else:
+                best_travel_plan = [best_travel_plan[0], None] + best_travel_plan[1:]
+                drone.best_travel_plan = best_travel_plan
+            if len(best_travel_plan) > self.nb_turn:
+                self.nb_turn = len(best_travel_plan)
+            self.update_datas_drone_travel(drone)
+
 
     def backtraking_algo_optimisation(self) -> None:
         """Optimisation Algo for Complexs Map"""
@@ -493,11 +532,16 @@ class DronesManager:
         nb_turn_line = len(drone.best_travel_plan) + self.nb_drones - 1
         if nb_turn_line < self.nb_turn:
             # print("Optimisation de l'algo")
-            pass
-        else:
-            # print("Algo de base")
-            pass
-
+            # Reinitialiser:
+            #   - les hubs
+            #   - les connections
+            #   - les drones
+            #   - le nombre de tour total
+            # Enregistrer les parcours du premier drone
+            # Enregistrer le parcours des autres drones par copie du premier decallé d'un tour a chaque fois
+            self.reiinit_hubs()
+            self.reiinit_connects()
+            self.reiinit_drones()
 
     def backtracking_algo(self) -> None:
         """Define Best travel for Every Drone of the Map"""
